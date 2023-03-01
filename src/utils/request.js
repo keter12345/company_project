@@ -16,13 +16,13 @@ request.interceptors.request.use(
     (config) => {
         // 在请求发送之前做一些处理
         if (!(config.headers['Content-Type'])) {
-            loading = Loading.service({
-                lock: true,
-                text: "加载中...",
-                spinner: "el-icon-loading",
-                background: "rgba(255,255,255,0.7)",
-                customClass: "request-loading",
-            });
+            // loading = Loading.service({
+            //     lock: true,
+            //     text: "加载中...",
+            //     spinner: "el-icon-loading",
+            //     background: "rgba(255,255,255,0.7)",
+            //     customClass: "request-loading",
+            // });
             if (config.method == 'post') {
                 config.headers['Content-Type'] =
                     'application/json;charset=UTF-8'
@@ -46,7 +46,7 @@ request.interceptors.request.use(
         return config
     },
     (error) => {
-        loading.close();
+        // loading.close();
         // 发送失败
         console.log(error)
         return Promise.reject(error)
@@ -57,7 +57,7 @@ request.interceptors.request.use(
 request.interceptors.response.use(
     (response) => {
 
-        loading.close();
+        // loading.close();
         // dataAxios 是 axios 返回数据中的 data
         // loadingInstance.close();
         const dataAxios = response.data

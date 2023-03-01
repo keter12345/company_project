@@ -10,29 +10,30 @@
                 type="primary"
                 plain
                 size="mini"
-                @click="updateItemStatus(0)"
+                @click="updateItemStatus(props.$index, props.row.bk_code, 0)"
                 >普通</el-button
               >
               <el-button
                 type="warning"
                 plain
                 size="mini"
-                @click="updateItemStatus(1)"
+                @click="updateItemStatus(props.$index, props.row.bk_code, 1)"
                 >重要</el-button
               >
               <el-button
                 type="danger"
                 plain
                 size="mini"
-                @click="updateStatus(2)"
+                @click="updateItemStatus(props.$index, props.row.bk_code, 2)"
                 >龙头</el-button
               >
               <el-button plain size="mini" @click="clear()">取消选择</el-button>
             </div>
+            <!-- 股票部分表格 -->
             <el-table
               ref="ItemTable"
               height="550px"
-              :data="props.row.ItemInfo"
+              :data="props.row.values"
               tooltip-effect="dark"
               style="width: 100%"
               @selection-change="ItemSelectionChange"
@@ -62,31 +63,33 @@
         </template>
       </el-table-column>
 
-      <el-table-column
-        prop="bk_name"
-        label="行业名称"
-        width="180"
-      ></el-table-column>
+      <el-table-column label="行业名称" width="180">
+        <template slot-scope="scope">
+          <el-link :href="scope.row.bk_www" target="_blank">{{
+            scope.row.bk_name
+          }}</el-link>
+        </template></el-table-column
+      >
       <el-table-column
         prop="bk_code"
         label="行业代码"
         width="180"
       ></el-table-column>
-      <el-table-column prop="bak" label="备注"></el-table-column>
+      <el-table-column label="备注"> </el-table-column>
       <el-table-column
         prop="zycd"
         label="重要程度"
         :formatter="zycdTag"
         :filters="[
-          { text: '正常', value: 0 },
-          { text: '热点', value: 1 },
-          { text: '重要热点', value: 2 },
+          { text: '正常', value: '0' },
+          { text: '热点', value: '1' },
+          { text: '重要热点', value: '2' },
         ]"
         :filter-method="zycdFilterTag"
         filter-placement="bottom-end"
       ></el-table-column>
       <el-table-column align="right">
-        <template slot="header" slot-scope="scope">
+        <template slot="header">
           <el-input
             v-model="search"
             size="mini"
@@ -97,19 +100,19 @@
           <el-button
             size="mini"
             type="primary"
-            @click="updateBGLevel(scope.row.id, 0)"
+            @click="updateBGLevel(scope.row.bk_code, '0')"
             >正常</el-button
           >
           <el-button
             size="mini"
             type="warning"
-            @click="updateBGLevel(scope.row.id, 1)"
+            @click="updateBGLevel(scope.row.bk_code, '1')"
             >热点</el-button
           >
           <el-button
             size="mini"
             type="danger"
-            @click="updateBGLevel(scope.row.id, 2)"
+            @click="updateBGLevel(scope.row.bk_code, '2')"
             >重要热点</el-button
           >
         </template>
@@ -119,7 +122,11 @@
 </template>
 
 <script>
-import { getAllBGListAPI, updateBGLevelAPI } from "../api/index.js";
+import {
+  getAllBGListAPI,
+  updateBGLevelAPI,
+  updateItemStatusAPI,
+} from "../api/index.js";
 export default {
   name: "Industry_BG",
   components: {},
@@ -141,22 +148,61 @@ export default {
     // 获取所有行业信息
     async getAllBG() {
       let res = await getAllBGListAPI();
-      console.log("行业数据");
-      console.log(res);
-      this.BGInfo = res;
+
+      this.BGInfo = JSON.parse(res);
     },
     // 修改行业信息重要程度
-    async updateBGLevel(id, val) {
-      let res = await updateBGLevelAPI(id, val);
-      console.log("修改后行业数据");
-      console.log(res);
-      this.BGInfo = res;
+    async updateBGLevel(bk_code, val) {
+      let res = "";
+      try {
+        res = await updateBGLevelAPI(bk_code, val);
+        this.$message({
+          message: "重要程度更新成功！",
+          type: "success",
+        });
+        this.BGInfo = JSON.parse(res);
+      } catch (error) {
+        console.log(error);
+        this.$message({
+          message: "重要程度更新失败",
+          type: "warning",
+        });
+      }
     },
     // 修改股票状态
-    updateItemStatus() {},
+    async updateItemStatus(index, bk_code, status) {
+      let res = "";
+      try {
+        (async () => {
+          for (let i = 0; i < this.ItemSelection.length; i++) {
+            res = JSON.parse(
+              await updateItemStatusAPI(
+                bk_code,
+                this.ItemSelection[i].ts_code,
+                status
+              )
+            );
+          }
+          console.log(res);
+          this.BGInfo[index].values = res[index].values;
+        })();
+
+        this.$message({
+          message: "状态更新成功！",
+          type: "success",
+        });
+      } catch (error) {
+        console.log(error);
+        this.$message({
+          message: "状态更新失败",
+          type: "warning",
+        });
+      }
+    },
     zycdTag(row, cloumn) {
       return this.zycdStr[row.zycd];
     },
+    // 根据重要程度实现筛选
     zycdFilterTag(value, row) {
       return value === row.zycd;
     },
@@ -168,7 +214,6 @@ export default {
     },
     ItemSelectionChange(val) {
       this.ItemSelection = val;
-      console.log(this.ItemSelection);
     },
     clear() {
       this.$refs.ItemTable.clearSelection();
@@ -187,7 +232,15 @@ export default {
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    this.getAllBG();
+    try {
+      this.getAllBG();
+    } catch (error) {
+      console.log(error);
+      this.$message({
+        message: "数据获取失败",
+        type: "warning",
+      });
+    }
   },
   beforeMount() {}, //生命周期 - 挂载之前
   //生命周期 - 挂载完成（可以访问DOM元素）

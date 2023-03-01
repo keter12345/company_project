@@ -7,7 +7,12 @@ export const getAllBGList = () => request({
     url: 'getallbk/',
 })
 
-export const updateBGLevel = (id, val) => request({
+export const updateBGLevel = (bk_code, val) => request({
     method: 'GET',
-    url: `bkupdate/?zycd=${val}&id=${id}`,
+    url: `bkupdate/?zycd=${val}&bk_code=${bk_code}`,
+})
+
+export const updateItemStatus = (bk_code, ts_code, status) => request({
+    method: '',
+    url: `bkupdateHystock/?bk_code=${bk_code}&ts_code=${ts_code}&status=${status}`
 })

@@ -11,6 +11,11 @@ module.exports = {
       '^/api': {
         target: 'http://127.0.0.1:8000', //请求接口域名 
         ws: true,
+        host: '192.168.31.83',
+        port: 8080,
+        client: {
+          webSocketURL: 'ws://192.168.31.83:8080/ws',
+        },
         secure: false,
         changOrigin: true, //是否允许跨越
         pathRewrite: {
@@ -19,5 +24,7 @@ module.exports = {
       }
     },
   },
+
+  transpileDependencies: true
 
 }
