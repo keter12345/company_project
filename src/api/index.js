@@ -1,4 +1,4 @@
-import { getAllBGList, updateBGLevel, updateItemStatus } from '../api/Industry_BG'
+import { getAllBGList, updateBGLevel, updateItemStatus } from './industry'
 
 export const getAllBGListAPI = getAllBGList
 
