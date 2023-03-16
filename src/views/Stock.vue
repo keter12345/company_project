@@ -1,52 +1,69 @@
 <template>
   <div class="">
-    <!-- text  下拉菜单 显示多选-->
-    <div></div>
-
-    <!-- text -->
-
+    <!-- 滑动搜索框 -->
+    <div class="search">
+      <div class="search-left">
+        <transition name="el-zoom-in-center">
+          <el-popover
+            placement="bottom"
+            trigger="manual"
+            content="请选择搜索内容"
+            v-model="popoverShow"
+            :disabled="!stockSearchShow"
+          >
+            <el-input
+              placeholder="请输入内容"
+              v-model="stockSearchVal"
+              v-show="stockSearchShow"
+              slot="reference"
+              @input="
+                stockSearchSelect == '' && stockSearch;
+                Val != '' ? (popoverShow = true) : (popoverShow = false);
+              "
+              @focus="stockSearchSelect != '' ? (popoverShow = false) : ''"
+            >
+              <el-select
+                v-model="stockSearchSelect"
+                slot="prepend"
+                placeholder="请选择"
+              >
+                <el-option
+                  v-for="item in filedTable"
+                  :key="item.id"
+                  :label="item.filedname"
+                  :value="item.prop"
+                ></el-option>
+              </el-select>
+            </el-input>
+          </el-popover>
+        </transition>
+      </div>
+      <div class="search-right">
+        <i
+          class="el-icon-search icon"
+          @click="stockSearchShow = !stockSearchShow"
+          title="搜索"
+        ></i>
+        <i class="el-icon-setting icon" @click="open()" title="设置"></i>
+      </div>
+    </div>
     <!-- 设置抽屉，用于字段选择 -->
     <div>
-      <!-- <i class="el-icon-setting" @click="open()"></i> -->
-      <el-link icon="el-icon-setting" @click="open()">显示设置</el-link>
-      <el-drawer :with-header="false" :visible.sync="drawer" size="20%">
+      <el-drawer
+        :with-header="false"
+        :visible.sync="drawer"
+        @close="cancle"
+        size="20%"
+      >
         <div class="main">
           <div class="header">
             <span class="header_left">显示设置</span>
             <span class="header_right">
-              <i class="el-icon-check icon" @click="checked()"></i>
-              <i class="el-icon-refresh icon" @click="reset()"></i>
-              <i class="el-icon-close icon" @click="cancle()"></i>
+              <i class="el-icon-check icon" @click="checked()" title="确定"></i>
+              <i class="el-icon-refresh icon" @click="reset()" title="刷新"></i>
+              <i class="el-icon-close icon" @click="cancle()" title="关闭"></i>
             </span>
           </div>
-          <!-- 选择框部分 -->
-          <!-- <div class="content">
-            <el-input
-              placeholder="请输入内容"
-              prefix-icon="el-icon-search"
-              v-model="filedSearch"
-              size="small"
-            >
-            </el-input>
-            <el-checkbox
-              :indeterminate="isIndeterminate"
-              v-model="checkAll"
-              @change="handleCheckAllChange"
-              >全选</el-checkbox
-            >
-            <el-checkbox-group
-              v-model="filedChecked"
-              @change="handleFiledCheckedChange"
-            >
-              <el-checkbox
-                v-for="(filed, index) in filedInfo"
-                :label="filed"
-                :key="index"
-                style="display: block; font-size: 35px"
-                >{{ filed.filedname }}</el-checkbox
-              >
-            </el-checkbox-group>
-          </div> -->
           <div>
             <el-table
               ref="filedInfoTable"
@@ -56,16 +73,18 @@
               @selection-change="handleSelectionChange"
               :row-key="getRowKey"
             >
+              <!-- 多选框 -->
               <el-table-column
                 type="selection"
                 width="55"
                 :reserve-selection="true"
               >
               </el-table-column>
+              <!-- 表头搜索框 -->
               <el-table-column>
                 <template slot="header" slot-scope="scope">
                   <el-input
-                    v-model="filedSearch"
+                    v-model="filedSearchVal"
                     size="mini"
                     placeholder="输入关键字搜索"
                   />
@@ -81,13 +100,47 @@
     </div>
     <!-- 表格数据展示 -->
     <div>
-      <el-table :data="stockInfo" stripe style="width: 100%" height="100vh">
-        <el-table-column
-          v-for="(item, index) in filedTable"
-          :key="index"
-          :prop="item.prop"
-          :label="item.filedname"
-        ></el-table-column>
+      <el-table
+        :data="
+          stockSearchVal != '' && stockSearchSelect != ''
+            ? stockSearchInfo
+            : stockInfo
+        "
+        stripe
+        style="width: 100%"
+        height="100vh"
+        :cell-style="returnStyle"
+      >
+        <template v-for="(item, index) in filedTable">
+          <!-- 特殊列 -->
+          <el-table-column
+            :key="index"
+            :prop="item.prop"
+            :label="item.filedname"
+            v-if="item.prop == 'changpercent'"
+          >
+            <template slot-scope="scope">
+              <span>{{ scope.row.changpercent }}</span>
+              <i
+                class="el-icon-top"
+                style="color: red"
+                v-if="upIconShow.includes(scope.row.id)"
+              />
+              <i
+                class="el-icon-bottom"
+                style="color: green"
+                v-else-if="downIconShow.includes(scope.row.id)"
+              />
+            </template>
+          </el-table-column>
+          <!-- 普通数据循环 -->
+          <el-table-column
+            :key="index"
+            :prop="item.prop"
+            :label="item.filedname"
+            v-else
+          ></el-table-column>
+        </template>
       </el-table>
     </div>
   </div>
@@ -107,29 +160,98 @@ export default {
       filedTable: [], //显示在表上的字段
       drawer: false, //设置抽屉是否显示
       isIndeterminate: true,
-      checkAll: false,
-      filedSearch: "", //字段搜索值
+      checkAll: false, //是否全选
+      filedSearchVal: "", //字段搜索值
+      upIconShow: [], //红↑显示字段id合集
+      downIconShow: [], //绿↓显示字段id合集
+      stockSearchSelect: "",
+      stockSearchShow: false, //数据搜索框是否展示
+      stockSearchVal: "",
+      stockSearchInfo: [],
+      popoverShow: false,
     };
   },
 
-  computed: {},
+  computed: {
+    Data() {
+      return JSON.parse(JSON.stringify(this.stockInfo));
+    },
+  },
 
   watch: {
     // 监听搜索数据
-    filedSearch: {
+    filedSearchVal: {
       handler(newVal, oldVal) {
         if (newVal != "") {
-          this.Search(newVal);
+          this.filedInfo = this.filedInfo.filter((data) => {
+            return data.filedname.includes(newVal);
+          });
         } else {
           this.getFileInfo();
           console.log(this.filedChecked);
         }
       },
     },
+    // 监听股票数据，记录单元格样式改变
+    Data: {
+      handler(newVal, oldVal) {
+        this.upIconShow = [];
+        if (oldVal == null) {
+          return;
+        } else {
+          newVal.forEach((item, index) => {
+            console.log(item.changpercent);
+            console.log(oldVal[index].changpercent);
+            if (item.changpercent > oldVal[index].changpercent) {
+              this.upIconShow.push(item.id);
+            } else if (item.changpercent < oldVal[index].changpercent) {
+              this.downIconShow.push(item.id);
+            }
+          });
+        }
+      },
+      // 深度监听
+      deep: true,
+    },
+    // 监听股票搜索值，实现搜索功能
+    stockSearchVal: {
+      handler(newVal, oldVal) {
+        this.stockSearchInfo = [];
+        if (this.stockSearchSelect) {
+          console.log("搜索");
+          this.stockSearchInfo = this.stockSearch(newVal, this.stockInfo);
+        }
+      },
+    },
   },
 
   methods: {
-    // 获取所有-字段相关数据
+    stockSearch(val, info) {
+      let res = [];
+      if (val) {
+        console.log(val);
+        console.log(this.stockSearchSelect);
+        res = info.filter((data) => {
+          !val || eval(`data.${this.stockSearchSelect}.includes(val)`);
+        });
+        console.log(res);
+      }
+      return res;
+    },
+    // 根据数据，改变单元格样式  测试字段：cjbl
+    returnStyle(obj) {
+      if (obj.row.cjbl > 0 && obj.column.property == "cjbl") {
+        return {
+          color: "red",
+        };
+      }
+      if (obj.row.cjbl < 0 && obj.column.property == "cjbl") {
+        return {
+          color: "green",
+        };
+      }
+    },
+    // 获取所有字段相关数据
     async getFileInfo() {
       this.filedInfo = await getFileInfoAPI();
       this.filedChecked = this.filedInfo.filter((data) => {
@@ -139,12 +261,7 @@ export default {
         return data.is_show === 1;
       });
     },
-    // 字段搜索功能
-    Search(val) {
-      this.filedInfo = this.filedInfo.filter((data) => {
-        return data.filedname.includes(val);
-      });
-    },
+    // 多选框选择功能-绑定方法
     handleSelectionChange(val) {
       this.filedChecked = val;
     },
@@ -165,15 +282,27 @@ export default {
     },
     // ****确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
+      let res;
+      let newVal = this.filedChecked.map((item) => item.id);
+      let oldVal = this.filedTable.map((item) => item.id);
+      // *****获取结果渲染到页面表格
+      if (newVal == "") {
+        this.$alert("请选择需要显示的内容", "提示", {
+          confirmButtonText: "确定",
+        });
+        return;
+      } else if (
+        JSON.stringify(oldVal.sort()) != JSON.stringify(newVal.sort())
+      ) {
+        console.log(newVal);
+        res = await updateFilInfoAPI(newVal);
+        // this.filedTable = this.filedChecked;
+        // 更新页面数据
+        // await this.getFileInfo();
+      }
       this.drawer = false;
-      console.log(this.filedChecked);
-      let res = [];
-      this.filedChecked.map((item) => res.push({ id: item.id }));
-      console.log(res);
-      console.log(JSON.stringify(res));
-      // await updateFilInfoAPI(JSON.stringify(res));
     },
-    // 重置按钮，重置选择内容
+    // 重置按钮，重置选择内容s
     async reset() {
       // 清空搜索和多选内容
       this.$refs.filedInfoTable.clearSelection();
@@ -182,6 +311,7 @@ export default {
       await this.getFileInfo();
       this.$nextTick(() => {
         if (this.$refs.filedInfoTable) {
+          0;
           this.filedChecked.forEach((row) => {
             this.$refs.filedInfoTable.toggleRowSelection(row, true);
           });
@@ -202,14 +332,170 @@ export default {
     this.stockInfo = [
       {
         ts_code: "002902",
-        ts_name: "铭普光磁",
+        ts_name: "铭普光磁1",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
         cjbl: 1.7150280348855573,
         cjbl_one: 0.0,
         cjbl_five: 0.0,
         cjbl_ten: 0.0,
-        changpercent: 7.369999885559082,
+        changpercent: 1.369999885559082,
+        chengdu: 0,
+        countnum: 901,
+        turnoverrate: 15.300000190734863,
+        tradingamount_dw: 3.84936864,
+        cha_tradingamount: 182560.0,
+        one_tradingamount: 1087232.0,
+        five_tradingamount: 7296000.0,
+        ten_tradingamount: 18064064.0,
+        jl_zycd: 6,
+        one_tradingamount_p: 431200.0,
+        one_tradingamount_s: 686496.0,
+        one_tradingamount_b: 5056.0,
+        five_tradingamount_p: 4015552.0,
+        five_tradingamount_s: 1385760.0,
+        five_tradingamount_b: 2783808.0,
+        ten_tradingamount_p: 6107584.0,
+        ten_tradingamount_s: 7864064.0,
+        ten_tradingamount_b: 4068640.0,
+        tradingamount_p: 126207425.0,
+        tradingamount_s: 93939524.0,
+        tradingamount_b: 164789915.0,
+        lxztts: 0,
+        five_jyl_cjbl_day: 0,
+        tam_chengdu: 7,
+        year_sfzt: 11,
+        year_lxztqk: "3,2,",
+        twoyear_sfzt: 18,
+        twoyear_lxztqk: "2,3,2,",
+      },
+      {
+        ts_code: "002902",
+        ts_name: "铭普光磁2",
+        rd_datetime: "2023-03-08T11:27:20",
+        tradingamount: 384936864.0,
+        cjbl: 1.7150280348855573,
+        cjbl_one: 0.0,
+        cjbl_five: 0.0,
+        cjbl_ten: 0.0,
+        changpercent: 2.369999885559082,
+        chengdu: 0,
+        countnum: 901,
+        turnoverrate: 15.300000190734863,
+        tradingamount_dw: 3.84936864,
+        cha_tradingamount: 182560.0,
+        one_tradingamount: 1087232.0,
+        five_tradingamount: 7296000.0,
+        ten_tradingamount: 18064064.0,
+        jl_zycd: 6,
+        one_tradingamount_p: 431200.0,
+        one_tradingamount_s: 686496.0,
+        one_tradingamount_b: 5056.0,
+        five_tradingamount_p: 4015552.0,
+        five_tradingamount_s: 1385760.0,
+        five_tradingamount_b: 2783808.0,
+        ten_tradingamount_p: 6107584.0,
+        ten_tradingamount_s: 7864064.0,
+        ten_tradingamount_b: 4068640.0,
+        tradingamount_p: 126207425.0,
+        tradingamount_s: 93939524.0,
+        tradingamount_b: 164789915.0,
+        lxztts: 0,
+        five_jyl_cjbl_day: 0,
+        tam_chengdu: 7,
+        year_sfzt: 11,
+        year_lxztqk: "3,2,",
+        twoyear_sfzt: 18,
+        twoyear_lxztqk: "2,3,2,",
+      },
+      {
+        ts_code: "002902",
+        ts_name: "铭普光磁3",
+        rd_datetime: "2023-03-08T11:27:20",
+        tradingamount: 384936864.0,
+        cjbl: 1.7150280348855573,
+        cjbl_one: 0.0,
+        cjbl_five: 0.0,
+        cjbl_ten: 0.0,
+        changpercent: 3.369999885559082,
+        chengdu: 0,
+        countnum: 901,
+        turnoverrate: 15.300000190734863,
+        tradingamount_dw: 3.84936864,
+        cha_tradingamount: 182560.0,
+        one_tradingamount: 1087232.0,
+        five_tradingamount: 7296000.0,
+        ten_tradingamount: 18064064.0,
+        jl_zycd: 6,
+        one_tradingamount_p: 431200.0,
+        one_tradingamount_s: 686496.0,
+        one_tradingamount_b: 5056.0,
+        five_tradingamount_p: 4015552.0,
+        five_tradingamount_s: 1385760.0,
+        five_tradingamount_b: 2783808.0,
+        ten_tradingamount_p: 6107584.0,
+        ten_tradingamount_s: 7864064.0,
+        ten_tradingamount_b: 4068640.0,
+        tradingamount_p: 126207425.0,
+        tradingamount_s: 93939524.0,
+        tradingamount_b: 164789915.0,
+        lxztts: 0,
+        five_jyl_cjbl_day: 0,
+        tam_chengdu: 7,
+        year_sfzt: 11,
+        year_lxztqk: "3,2,",
+        twoyear_sfzt: 18,
+        twoyear_lxztqk: "2,3,2,",
+      },
+      {
+        ts_code: "002902",
+        ts_name: "铭普光磁4",
+        rd_datetime: "2023-03-08T11:27:20",
+        tradingamount: 384936864.0,
+        cjbl: 1.7150280348855573,
+        cjbl_one: 0.0,
+        cjbl_five: 0.0,
+        cjbl_ten: 0.0,
+        changpercent: 4.369999885559082,
+        chengdu: 0,
+        countnum: 901,
+        turnoverrate: 15.300000190734863,
+        tradingamount_dw: 3.84936864,
+        cha_tradingamount: 182560.0,
+        one_tradingamount: 1087232.0,
+        five_tradingamount: 7296000.0,
+        ten_tradingamount: 18064064.0,
+        jl_zycd: 6,
+        one_tradingamount_p: 431200.0,
+        one_tradingamount_s: 686496.0,
+        one_tradingamount_b: 5056.0,
+        five_tradingamount_p: 4015552.0,
+        five_tradingamount_s: 1385760.0,
+        five_tradingamount_b: 2783808.0,
+        ten_tradingamount_p: 6107584.0,
+        ten_tradingamount_s: 7864064.0,
+        ten_tradingamount_b: 4068640.0,
+        tradingamount_p: 126207425.0,
+        tradingamount_s: 93939524.0,
+        tradingamount_b: 164789915.0,
+        lxztts: 0,
+        five_jyl_cjbl_day: 0,
+        tam_chengdu: 7,
+        year_sfzt: 11,
+        year_lxztqk: "3,2,",
+        twoyear_sfzt: 18,
+        twoyear_lxztqk: "2,3,2,",
+      },
+      {
+        ts_code: "002902",
+        ts_name: "铭普光磁5",
+        rd_datetime: "2023-03-08T11:27:20",
+        tradingamount: 384936864.0,
+        cjbl: 1.7150280348855573,
+        cjbl_one: 0.0,
+        cjbl_five: 0.0,
+        cjbl_ten: 0.0,
+        changpercent: 5.369999885559082,
         chengdu: 0,
         countnum: 901,
         turnoverrate: 15.300000190734863,
@@ -253,27 +539,14 @@ export default {
 </script>
 <style lang="less" scoped>
 // 设置icon
-.el-icon-setting {
-  font-size: 25px;
-  margin: 5px;
-}
 
-.el-dropdown-link {
-  cursor: pointer;
-  color: #409eff;
-}
-.el-icon-arrow-down {
-  font-size: 12px;
-}
 .main {
   width: 100%;
   height: 100vh;
   display: flex;
   flex-direction: column;
 }
-.content {
-  padding: 20px;
-}
+
 .header {
   padding: 0 20px;
   height: 50px;
@@ -290,6 +563,31 @@ export default {
     }
     .icon:hover {
       color: #409eff;
+      content: attr(title);
+    }
+  }
+}
+.search {
+  margin: 10px;
+  display: flex;
+  width: 50%;
+  float: right;
+
+  .search-left {
+    flex: 1;
+  }
+  .search-right {
+    height: 40px;
+    width: 100px;
+    text-align: center;
+    line-height: 40px;
+    .icon {
+      width: 50%;
+      font-size: 20px;
+    }
+    .icon:hover {
+      color: #409eff;
+      content: attr(title);
     }
   }
 }
