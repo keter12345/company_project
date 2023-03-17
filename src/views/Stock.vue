@@ -17,8 +17,9 @@
               v-show="stockSearchShow"
               slot="reference"
               @input="
-                stockSearchSelect == '' && stockSearch;
-                Val != '' ? (popoverShow = true) : (popoverShow = false);
+                stockSearchSelect == '' && stockSearchVal != ''
+                  ? (popoverShow = true)
+                  : (popoverShow = false)
               "
               @focus="stockSearchSelect != '' ? (popoverShow = false) : ''"
             >
@@ -41,7 +42,10 @@
       <div class="search-right">
         <i
           class="el-icon-search icon"
-          @click="stockSearchShow = !stockSearchShow"
+          @click="
+            stockSearchShow = !stockSearchShow;
+            stockSearchVal = '';
+          "
           title="搜索"
         ></i>
         <i class="el-icon-setting icon" @click="open()" title="设置"></i>
@@ -223,16 +227,30 @@ export default {
         }
       },
     },
+    stockSearchSelect: {
+      handler(newVal, oldVal) {
+        if (newVal != "") this.stockSearchVal = "";
+      },
+    },
   },
 
   methods: {
+    // 股票信息搜索功能
     stockSearch(val, info) {
       let res = [];
       if (val) {
         console.log(val);
-        console.log(this.stockSearchSelect);
         res = info.filter((data) => {
-          !val || eval(`data.${this.stockSearchSelect}.includes(val)`);
+          if (typeof eval(`data.${this.stockSearchSelect}`) == "number") {
+            data = eval(`data.${this.stockSearchSelect}.toString()`);
+            return data.substr(0, val.length) == val;
+          } else {
+            console.log("string");
+            return (
+              !val ||
+              eval(`data.${this.stockSearchSelect}.toString().includes(val)`)
+            );
+          }
         });
         console.log(res);
       }
@@ -331,7 +349,7 @@ export default {
     // 每次创建页面自动获取数据
     this.stockInfo = [
       {
-        ts_code: "002902",
+        ts_code: "002900",
         ts_name: "铭普光磁1",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
@@ -370,7 +388,7 @@ export default {
         twoyear_lxztqk: "2,3,2,",
       },
       {
-        ts_code: "002902",
+        ts_code: "002901",
         ts_name: "铭普光磁2",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
@@ -448,7 +466,7 @@ export default {
         twoyear_lxztqk: "2,3,2,",
       },
       {
-        ts_code: "002902",
+        ts_code: "002903",
         ts_name: "铭普光磁4",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
@@ -487,7 +505,7 @@ export default {
         twoyear_lxztqk: "2,3,2,",
       },
       {
-        ts_code: "002902",
+        ts_code: "002904",
         ts_name: "铭普光磁5",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
@@ -538,8 +556,6 @@ export default {
 };
 </script>
 <style lang="less" scoped>
-// 设置icon
-
 .main {
   width: 100%;
   height: 100vh;
