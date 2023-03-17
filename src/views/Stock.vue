@@ -173,6 +173,7 @@ export default {
       stockSearchVal: "",
       stockSearchInfo: [],
       popoverShow: false,
+      filedColorSelect: [], //红绿效果切换字段
     };
   },
 
@@ -192,11 +193,10 @@ export default {
           });
         } else {
           this.getFileInfo();
-          console.log(this.filedChecked);
         }
       },
     },
-    // 监听股票数据，记录单元格样式改变
+    // 监听股票数据，根据新旧数据实现表格箭头显示
     Data: {
       handler(newVal, oldVal) {
         this.upIconShow = [];
@@ -222,7 +222,6 @@ export default {
       handler(newVal, oldVal) {
         this.stockSearchInfo = [];
         if (this.stockSearchSelect) {
-          console.log("搜索");
           this.stockSearchInfo = this.stockSearch(newVal, this.stockInfo);
         }
       },
@@ -258,12 +257,18 @@ export default {
     },
     // 根据数据，改变单元格样式  测试字段：cjbl
     returnStyle(obj) {
-      if (obj.row.cjbl > 0 && obj.column.property == "cjbl") {
+      if (
+        this.filedColorSelect.includes(obj.column.property) &&
+        eval(`obj.row.${obj.column.property}`) > 0
+      ) {
         return {
           color: "red",
         };
       }
-      if (obj.row.cjbl < 0 && obj.column.property == "cjbl") {
+      if (
+        this.filedColorSelect.includes(obj.column.property) &&
+        eval(`obj.row.${obj.column.property}`) < 0
+      ) {
         return {
           color: "green",
         };
@@ -272,21 +277,21 @@ export default {
     // 获取所有字段相关数据
     async getFileInfo() {
       this.filedInfo = await getFileInfoAPI();
+      // 获取已选显示字段
       this.filedChecked = this.filedInfo.filter((data) => {
         return data.is_show === 1;
       });
+      // 获取表格显示字段
       this.filedTable = this.filedInfo.filter((data) => {
         return data.is_show === 1;
       });
-    },
-    // 多选框选择功能-绑定方法
-    handleSelectionChange(val) {
-      this.filedChecked = val;
-    },
-    getRowKey(row) {
-      return row.id;
+      // 获取需要颜色变化字段
+      this.filedTable.forEach((data) => {
+        if (data.is_czzd == 1) this.filedColorSelect.push(data.prop);
+      });
     },
 
+    // **抽屉模块功能**
     // 设置按钮，打开抽屉，显示默认选择
     open() {
       this.drawer = true;
@@ -298,7 +303,14 @@ export default {
         }
       });
     },
-    // ****确认按钮,发送、更新选中数据数据 updata接口！！！！
+    // 多选框选择功能-绑定方法
+    handleSelectionChange(val) {
+      this.filedChecked = val;
+    },
+    getRowKey(row) {
+      return row.id;
+    },
+    // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
       let res;
       let newVal = this.filedChecked.map((item) => item.id);
@@ -341,6 +353,17 @@ export default {
       this.reset();
       this.drawer = false;
     },
+    // 股票信息初始化 数值格式化
+    stockInfoFormat(info) {
+      info.forEach((data) => {
+        for (const key in data) {
+          if (key != "Id" && typeof data[key] == "number") {
+            data[key] = Number(data[key].toFixed(2));
+          }
+        }
+      });
+      return info;
+    },
   },
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
@@ -357,7 +380,7 @@ export default {
         cjbl_one: 0.0,
         cjbl_five: 0.0,
         cjbl_ten: 0.0,
-        changpercent: 1.369999885559082,
+        changpercent: 0,
         chengdu: 0,
         countnum: 901,
         turnoverrate: 15.300000190734863,
@@ -392,7 +415,7 @@ export default {
         ts_name: "铭普光磁2",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
-        cjbl: 1.7150280348855573,
+        cjbl: -1.7150280348855573,
         cjbl_one: 0.0,
         cjbl_five: 0.0,
         cjbl_ten: 0.0,
@@ -431,11 +454,11 @@ export default {
         ts_name: "铭普光磁3",
         rd_datetime: "2023-03-08T11:27:20",
         tradingamount: 384936864.0,
-        cjbl: 1.7150280348855573,
+        cjbl: 0,
         cjbl_one: 0.0,
         cjbl_five: 0.0,
         cjbl_ten: 0.0,
-        changpercent: 3.369999885559082,
+        changpercent: -3.369999885559082,
         chengdu: 0,
         countnum: 901,
         turnoverrate: 15.300000190734863,
@@ -465,85 +488,86 @@ export default {
         twoyear_sfzt: 18,
         twoyear_lxztqk: "2,3,2,",
       },
-      {
-        ts_code: "002903",
-        ts_name: "铭普光磁4",
-        rd_datetime: "2023-03-08T11:27:20",
-        tradingamount: 384936864.0,
-        cjbl: 1.7150280348855573,
-        cjbl_one: 0.0,
-        cjbl_five: 0.0,
-        cjbl_ten: 0.0,
-        changpercent: 4.369999885559082,
-        chengdu: 0,
-        countnum: 901,
-        turnoverrate: 15.300000190734863,
-        tradingamount_dw: 3.84936864,
-        cha_tradingamount: 182560.0,
-        one_tradingamount: 1087232.0,
-        five_tradingamount: 7296000.0,
-        ten_tradingamount: 18064064.0,
-        jl_zycd: 6,
-        one_tradingamount_p: 431200.0,
-        one_tradingamount_s: 686496.0,
-        one_tradingamount_b: 5056.0,
-        five_tradingamount_p: 4015552.0,
-        five_tradingamount_s: 1385760.0,
-        five_tradingamount_b: 2783808.0,
-        ten_tradingamount_p: 6107584.0,
-        ten_tradingamount_s: 7864064.0,
-        ten_tradingamount_b: 4068640.0,
-        tradingamount_p: 126207425.0,
-        tradingamount_s: 93939524.0,
-        tradingamount_b: 164789915.0,
-        lxztts: 0,
-        five_jyl_cjbl_day: 0,
-        tam_chengdu: 7,
-        year_sfzt: 11,
-        year_lxztqk: "3,2,",
-        twoyear_sfzt: 18,
-        twoyear_lxztqk: "2,3,2,",
-      },
-      {
-        ts_code: "002904",
-        ts_name: "铭普光磁5",
-        rd_datetime: "2023-03-08T11:27:20",
-        tradingamount: 384936864.0,
-        cjbl: 1.7150280348855573,
-        cjbl_one: 0.0,
-        cjbl_five: 0.0,
-        cjbl_ten: 0.0,
-        changpercent: 5.369999885559082,
-        chengdu: 0,
-        countnum: 901,
-        turnoverrate: 15.300000190734863,
-        tradingamount_dw: 3.84936864,
-        cha_tradingamount: 182560.0,
-        one_tradingamount: 1087232.0,
-        five_tradingamount: 7296000.0,
-        ten_tradingamount: 18064064.0,
-        jl_zycd: 6,
-        one_tradingamount_p: 431200.0,
-        one_tradingamount_s: 686496.0,
-        one_tradingamount_b: 5056.0,
-        five_tradingamount_p: 4015552.0,
-        five_tradingamount_s: 1385760.0,
-        five_tradingamount_b: 2783808.0,
-        ten_tradingamount_p: 6107584.0,
-        ten_tradingamount_s: 7864064.0,
-        ten_tradingamount_b: 4068640.0,
-        tradingamount_p: 126207425.0,
-        tradingamount_s: 93939524.0,
-        tradingamount_b: 164789915.0,
-        lxztts: 0,
-        five_jyl_cjbl_day: 0,
-        tam_chengdu: 7,
-        year_sfzt: 11,
-        year_lxztqk: "3,2,",
-        twoyear_sfzt: 18,
-        twoyear_lxztqk: "2,3,2,",
-      },
+      // {
+      //   ts_code: "002903",
+      //   ts_name: "铭普光磁4",
+      //   rd_datetime: "2023-03-08T11:27:20",
+      //   tradingamount: 384936864.0,
+      //   cjbl: 1.7150280348855573,
+      //   cjbl_one: 0.0,
+      //   cjbl_five: 0.0,
+      //   cjbl_ten: 0.0,
+      //   changpercent: 4.369999885559082,
+      //   chengdu: 0,
+      //   countnum: 901,
+      //   turnoverrate: 15.300000190734863,
+      //   tradingamount_dw: 3.84936864,
+      //   cha_tradingamount: 182560.0,
+      //   one_tradingamount: 1087232.0,
+      //   five_tradingamount: 7296000.0,
+      //   ten_tradingamount: 18064064.0,
+      //   jl_zycd: 6,
+      //   one_tradingamount_p: 431200.0,
+      //   one_tradingamount_s: 686496.0,
+      //   one_tradingamount_b: 5056.0,
+      //   five_tradingamount_p: 4015552.0,
+      //   five_tradingamount_s: 1385760.0,
+      //   five_tradingamount_b: 2783808.0,
+      //   ten_tradingamount_p: 6107584.0,
+      //   ten_tradingamount_s: 7864064.0,
+      //   ten_tradingamount_b: 4068640.0,
+      //   tradingamount_p: 126207425.0,
+      //   tradingamount_s: 93939524.0,
+      //   tradingamount_b: 164789915.0,
+      //   lxztts: 0,
+      //   five_jyl_cjbl_day: 0,
+      //   tam_chengdu: 7,
+      //   year_sfzt: 11,
+      //   year_lxztqk: "3,2,",
+      //   twoyear_sfzt: 18,
+      //   twoyear_lxztqk: "2,3,2,",
+      // },
+      // {
+      //   ts_code: "002904",
+      //   ts_name: "铭普光磁5",
+      //   rd_datetime: "2023-03-08T11:27:20",
+      //   tradingamount: 384936864.0,
+      //   cjbl: 1.7150280348855573,
+      //   cjbl_one: 0.0,
+      //   cjbl_five: 0.0,
+      //   cjbl_ten: 0.0,
+      //   changpercent: 5.369999885559082,
+      //   chengdu: 0,
+      //   countnum: 901,
+      //   turnoverrate: 15.300000190734863,
+      //   tradingamount_dw: 3.84936864,
+      //   cha_tradingamount: 182560.0,
+      //   one_tradingamount: 1087232.0,
+      //   five_tradingamount: 7296000.0,
+      //   ten_tradingamount: 18064064.0,
+      //   jl_zycd: 6,
+      //   one_tradingamount_p: 431200.0,
+      //   one_tradingamount_s: 686496.0,
+      //   one_tradingamount_b: 5056.0,
+      //   five_tradingamount_p: 4015552.0,
+      //   five_tradingamount_s: 1385760.0,
+      //   five_tradingamount_b: 2783808.0,
+      //   ten_tradingamount_p: 6107584.0,
+      //   ten_tradingamount_s: 7864064.0,
+      //   ten_tradingamount_b: 4068640.0,
+      //   tradingamount_p: 126207425.0,
+      //   tradingamount_s: 93939524.0,
+      //   tradingamount_b: 164789915.0,
+      //   lxztts: 0,
+      //   five_jyl_cjbl_day: 0,
+      //   tam_chengdu: 7,
+      //   year_sfzt: 11,
+      //   year_lxztqk: "3,2,",
+      //   twoyear_sfzt: 18,
+      //   twoyear_lxztqk: "2,3,2,",
+      // },
     ];
+    this.stockInfoFormat(this.stockInfo);
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
