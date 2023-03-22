@@ -57,12 +57,54 @@
         :with-header="false"
         :visible.sync="drawer"
         @close="cancle"
-        size="20%"
+        size="25%"
       >
+        <!-- 内部抽屉 -->
+        <div class="inner">
+          <el-drawer
+            title="新增字段"
+            :append-to-body="true"
+            :visible.sync="innerDrawer"
+            size="20%"
+          >
+            <div class="innerForm">
+              <el-form
+                ref="form"
+                :model="form"
+                label-width="80px"
+                label-position="left"
+              >
+                <el-form-item label="字段">
+                  <el-input v-model="form.prop"></el-input>
+                </el-form-item>
+                <el-form-item label="标题">
+                  <el-input v-model="form.filedname"></el-input>
+                </el-form-item>
+                <el-form-item label="默认展示">
+                  <el-radio-group v-model="form.is_show">
+                    <el-radio label="是"></el-radio>
+                    <el-radio label="否"></el-radio>
+                  </el-radio-group>
+                </el-form-item>
+                <el-form-item label="控制界面">
+                  <el-input v-model="form.tablename"></el-input>
+                </el-form-item>
+                <el-form-item label="备注">
+                  <el-input v-model="form.bak"></el-input>
+                </el-form-item>
+              </el-form>
+            </div>
+            <div class="innerBotton">
+              <el-button type="primary">确认</el-button>
+              <el-button>取消</el-button>
+            </div>
+          </el-drawer>
+        </div>
         <div class="main">
           <div class="header">
             <span class="header_left">显示设置</span>
             <span class="header_right">
+              <i class="el-icon-plus icon" @click="add()" title="添加"></i>
               <i class="el-icon-check icon" @click="checked()" title="确定"></i>
               <i class="el-icon-refresh icon" @click="reset()" title="刷新"></i>
               <i class="el-icon-close icon" @click="cancle()" title="关闭"></i>
@@ -174,6 +216,15 @@ export default {
       stockSearchInfo: [],
       popoverShow: false,
       filedColorSelect: [], //红绿效果切换字段
+      innerDrawer: false,
+      form: {
+        prop: "",
+        filedname: "",
+        is_show: "",
+        bak: "",
+        is_czzd: "",
+        tablename: "",
+      },
     };
   },
 
@@ -310,6 +361,7 @@ export default {
     getRowKey(row) {
       return row.id;
     },
+    // 抽屉功能：增删改查
     // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
       let res;
@@ -352,6 +404,10 @@ export default {
     cancle() {
       this.reset();
       this.drawer = false;
+    },
+    // 新增字段
+    add() {
+      this.innerDrawer = true;
     },
     // 股票信息初始化 数值格式化
     stockInfoFormat(info) {
@@ -592,21 +648,26 @@ export default {
   height: 50px;
   text-align: center;
   line-height: 50px;
+
   .header_left {
     float: left;
   }
+
   .header_right {
     float: right;
+
     .icon {
       font-size: 20px;
       padding: 5px;
     }
+
     .icon:hover {
       color: #409eff;
       content: attr(title);
     }
   }
 }
+
 .search {
   margin: 10px;
   display: flex;
@@ -616,19 +677,29 @@ export default {
   .search-left {
     flex: 1;
   }
+
   .search-right {
     height: 40px;
     width: 100px;
     text-align: center;
     line-height: 40px;
+
     .icon {
       width: 50%;
       font-size: 20px;
     }
+
     .icon:hover {
       color: #409eff;
       content: attr(title);
     }
   }
+}
+.innerForm {
+  padding: 20px;
+}
+.innerBotton {
+  padding: 0 20px;
+  text-align: center;
 }
 </style>

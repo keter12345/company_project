@@ -9,3 +9,5 @@ export const updateFilInfo = (ids) => request({
     method: "GET",
     url: `updateSysshow/?ids=${ids}`
 })
+
+
