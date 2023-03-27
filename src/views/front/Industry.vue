@@ -198,7 +198,7 @@ import {
   getAllBGListAPI,
   updateBGLevelAPI,
   updateItemStatusAPI,
-} from "../api/index.js";
+} from "../../api/index.js";
 export default {
   name: "Industry",
   components: {},
