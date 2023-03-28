@@ -2,37 +2,6 @@
   <div class="">
     <!-- 滑动搜索框 -->
     <div class="search">
-      <div class="search-left">
-        <transition name="el-zoom-in-center">
-          <!-- <el-popover
-            placement="bottom"
-            trigger="manual"
-            content="请选择搜索内容"
-            v-model="popoverShow"
-            :disabled="!stockSearchShow"
-          > -->
-          <el-input
-            placeholder="请输入内容"
-            v-model="stockSearchVal"
-            v-show="stockSearchShow"
-            @input=""
-          >
-            <el-select
-              v-model="stockSearchSelect"
-              slot="prepend"
-              placeholder="请选择"
-            >
-              <el-option
-                v-for="item in filedTable"
-                :key="item.id"
-                :label="item.filedname"
-                :value="item.prop"
-              ></el-option>
-            </el-select>
-          </el-input>
-          <!-- </el-popover> -->
-        </transition>
-      </div>
       <div class="search-right">
         <i
           class="el-icon-search icon"
@@ -43,6 +12,57 @@
           title="搜索"
         ></i>
         <i class="el-icon-setting icon" @click="open()" title="设置"></i>
+      </div>
+
+      <div>
+        <transition name="el-zoom-in-top">
+          <el-card class="box-card" v-show="stockSearchShow">
+            <div slot="header" class="clearfix">
+              <span>搜索条件</span>
+              <span style="float: right">
+                <i
+                  class="el-icon-delete icon"
+                  title="重置条件"
+                  @click="clareStockSearch"
+                ></i>
+                <i
+                  class="el-icon-plus icon"
+                  @click="addStockSearch"
+                  title="添加条件"
+                ></i>
+                <i
+                  class="el-icon-check icon"
+                  @click="checkedStockSearch"
+                  title="搜索"
+                ></i
+              ></span>
+            </div>
+            <div
+              v-for="(item, index) in searchForm"
+              :key="index"
+              class="card_item"
+            >
+              <el-input
+                placeholder="请输入内容"
+                v-model="item.stockSearchVal"
+                size="medium"
+              >
+                <el-select
+                  v-model="item.stockSearchSelect"
+                  slot="prepend"
+                  placeholder="请选择"
+                >
+                  <el-option
+                    v-for="item in filedTable"
+                    :key="item.id"
+                    :label="item.filedname"
+                    :value="item.prop"
+                  ></el-option>
+                </el-select>
+              </el-input>
+            </div>
+          </el-card>
+        </transition>
       </div>
     </div>
     <!-- 设置抽屉，用于字段选择 -->
@@ -222,6 +242,7 @@ export default {
         is_czzd: "",
         tablename: "",
       },
+      searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }],
     };
   },
 
@@ -434,13 +455,26 @@ export default {
       });
       return info;
     },
+    // 添加搜索条件
+    addStockSearch() {
+      this.searchForm.push({ stockSearchVal: "", stockSearchSelect: "" });
+    },
+    // 重置搜索条件
+    clareStockSearch() {
+      this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
+    },
+    // 多条件搜索
+    checkedStockSearch() {
+      this.stockSearchShow = false;
+      console.log(this.searchForm);
+    },
   },
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
   async created() {
     await this.getFileInfo();
     // 每次创建页面自动获取数据
-    await this.getAllStock();
+    // await this.getAllStock();
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
@@ -486,29 +520,46 @@ export default {
 }
 
 .search {
-  margin: 10px;
-  display: flex;
-  width: 50%;
-  float: right;
-
-  .search-left {
-    flex: 1;
-  }
+  // margin: 10px;
+  // display: flex;
+  // width: 50%;
 
   .search-right {
-    height: 40px;
-    width: 100px;
-    text-align: center;
+    width: 100%;
+    text-align: right;
+
     line-height: 40px;
 
     .icon {
-      width: 50%;
+      padding: 0 10px;
       font-size: 20px;
     }
 
     .icon:hover {
       color: #409eff;
       content: attr(title);
+    }
+  }
+  .box-card {
+    // text-align: center;
+    // display: flex;
+    .clearfix {
+      .icon {
+        font-size: 20px;
+        padding: 5px;
+      }
+
+      .icon:hover {
+        color: #409eff;
+        content: attr(title);
+      }
+    }
+    .card_item {
+      margin-right: 20px;
+      margin-top: 5px;
+      max-width: 500px;
+      justify-content: space-around;
+      display: inline-flex;
     }
   }
 }
