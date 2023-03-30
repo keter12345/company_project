@@ -128,10 +128,13 @@
             :key="index"
             :prop="item.prop"
             :label="item.filedname"
-            v-if="item.prop == 'changpercent'"
+            v-if="filedColorSelect.includes(item.prop)"
           >
             <template slot-scope="scope">
-              <span>{{ scope.row.changpercent }}</span>
+              <!-- <span>{{ scope.row.changpercent }}</span> -->
+              <span>
+                {{ scope.row[item.prop] }}
+              </span>
               <i
                 class="el-icon-top"
                 style="color: red"
@@ -182,7 +185,7 @@ export default {
       // stockSearchSelect: "",
       stockSearchShow: false, //数据搜索框是否展示
       // stockSearchVal: "",
-      // stockSearchInfo: [],
+      stockSearchInfo: [],
       filedColorSelect: [], //红绿效果切换字段合集
       searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //搜索表单值
       searchVal: [], //搜索值
@@ -192,6 +195,7 @@ export default {
 
   computed: {
     Data() {
+      // 深拷贝
       return JSON.parse(JSON.stringify(this.stockInfo));
     },
   },
@@ -212,16 +216,32 @@ export default {
     // *****监听股票数据，根据新旧数据实现表格箭头显示
     Data: {
       handler(newVal, oldVal) {
+        let index = -1;
         this.upIconShow = [];
+        this.downIconShow = [];
         if (oldVal == null) {
           return;
         } else {
-          newVal.forEach((item, index) => {
-            if (item.changpercent > oldVal[index].changpercent) {
-              this.upIconShow.push(item.id);
-            } else if (item.changpercent < oldVal[index].changpercent) {
-              this.downIconShow.push(item.id);
+          newVal.forEach((item) => {
+            index = oldVal.findIndex((n) => n.Id == item.Id);
+            if (index >= 0) {
+              this.filedColorSelect.forEach((val) => {
+                if (
+                  eval(
+                    `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
+                  )
+                ) {
+                  this.upIconShow.push(item.Id);
+                } else if (
+                  eval(
+                    `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
+                  )
+                ) {
+                  this.downIconShow.push(item.Id);
+                }
+              });
             }
+            index = -1;
           });
         }
       },
@@ -234,9 +254,13 @@ export default {
     // 获取所有股票信息  接口待完善 计时器每五秒刷新一次功能
     getAllStock() {
       getStockInfoAPI().then((data) => {
-        let date = new Date();
-        console.log(date);
+        // test
+        // let date = new Date();
+        // console.log(date);
         let res = this.stockInfoFormat(JSON.parse(data));
+        this.stockInfo = res;
+        console.log(this.stockInfo);
+        // 搜索功能
         if (this.searchVal != "") {
           this.searchVal.forEach((val) => {
             res = res.filter((data) => {
@@ -256,29 +280,10 @@ export default {
               }
             });
           });
+          this.stockSearchInfo = res;
         }
-        this.stockInfo = res;
       });
     },
-    // 股票信息搜索功能
-    // stockSearch(val, info) {
-    //   let res = [];
-    //   if (val) {
-    //     res = info.filter((data) => {
-    //       if (typeof eval(`data.${this.stockSearchSelect}`) == "number") {
-    //         data = eval(`data.${this.stockSearchSelect}.toString()`);
-    //         return data.substr(0, val.length) == val;
-    //       } else {
-    //         return (
-    //           !val ||
-    //           eval(`data.${this.stockSearchSelect}.toString().includes(val)`)
-    //         );
-    //       }
-    //     });
-    //     console.log(res);
-    //   }
-    //   return res;
-    // },
     // 根据数据，改变单元格颜色 大于0红色，小于0绿色
     returnStyle(obj) {
       if (
@@ -378,7 +383,7 @@ export default {
       this.reset();
       this.drawer = false;
     },
-    // 股票信息初始化 数值格式化保留两位小数 时间显示时刻部分
+    // 股票数值格式化保留两位小数 时间显示时刻部分
     stockInfoFormat(info) {
       info.forEach((data) => {
         for (const key in data) {
@@ -406,25 +411,41 @@ export default {
     clareStockSearch() {
       this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
       this.searchVal = [];
+      this.setTimer(this.getAllStock, 5000);
     },
     // 多条件搜索
     checkedStockSearch() {
-      // 关闭搜索栏
-      this.searchVal = [...this.searchForm];
-      this.stockSearchShow = false;
-      console.log(this.searchForm);
+      this.searchVal = [];
+      this.searchForm.forEach((val) => {
+        if (val.stockSearchVal != "" && val.stockSearchSelect != "") {
+          this.searchVal.push({ ...val });
+        }
+      });
+      if (this.searchVal.length > 0) {
+        this.setTimer(this.getAllStock, 5000);
+        this.stockSearchShow = false;
+      } else {
+        this.$message({
+          message: "请输入完整的搜索条件！",
+          type: "warning",
+        });
+      }
+    },
+    // 计时器防抖 fun执行函数 dely延迟时间
+    setTimer(fun, dely) {
+      clearInterval(this.timer);
+      fun();
+      this.timer = window.setInterval(() => {
+        setTimeout(fun(), 0);
+      }, dely);
     },
   },
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
   async created() {
     // 每次创建页面自动获取数据
-
     await this.getFileInfo();
-    await this.getAllStock();
-    this.timer = window.setInterval(() => {
-      setTimeout(this.getAllStock(), 0);
-    }, 5000);
+    this.setTimer(this.getAllStock, 5000);
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
@@ -473,10 +494,6 @@ export default {
 }
 
 .search {
-  // margin: 10px;
-  // display: flex;
-  // width: 50%;
-
   .search-right {
     width: 100%;
     text-align: right;
