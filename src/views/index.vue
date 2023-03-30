@@ -5,32 +5,18 @@
       <el-header>
         <el-menu
           :default-active="activeIndex"
-          mode="horizontal"
           class="el-menu-demo"
+          mode="horizontal"
           @select="handleSelect"
         >
-          <el-row :gutter="20">
-            <el-col :span="3">
-              <div>
-                <el-menu-item index="1">
-                  <i class="el-icon-s-home"></i>
-                </el-menu-item>
-              </div>
-            </el-col>
-            <el-col :span="2" :offset="17">
-              <el-menu-item index="2">
-                <i class="el-icon-bell"></i>
-              </el-menu-item>
-            </el-col>
-            <el-col :span="2">
-              <el-submenu index="3">
-                <template slot="title"
-                  ><i class="el-icon-user-solid"></i>
-                </template>
-                <el-menu-item index="3-1">退出登录</el-menu-item>
-              </el-submenu>
-            </el-col>
-          </el-row>
+          <el-menu-item index="1">首页</el-menu-item>
+
+          <el-menu-item index="2">消息中心</el-menu-item>
+          <el-menu-item index="3"
+            ><a href="https://www.ele.me" target="_blank"
+              >订单管理</a
+            ></el-menu-item
+          >
         </el-menu>
       </el-header>
       <el-container>
