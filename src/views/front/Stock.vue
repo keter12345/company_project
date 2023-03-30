@@ -5,10 +5,7 @@
       <div class="search-right">
         <i
           class="el-icon-search icon"
-          @click="
-            stockSearchShow = !stockSearchShow;
-            stockSearchVal = '';
-          "
+          @click="stockSearchShow = !stockSearchShow"
           title="搜索"
         ></i>
         <i class="el-icon-setting icon" @click="open()" title="设置"></i>
@@ -22,7 +19,7 @@
               <span style="float: right">
                 <i
                   class="el-icon-delete icon"
-                  title="重置条件"
+                  title="清空条件"
                   @click="clareStockSearch"
                 ></i>
                 <i
@@ -65,7 +62,7 @@
         </transition>
       </div>
     </div>
-    <!-- 设置抽屉，用于字段选择 -->
+    <!-- 字段设置抽屉，用于字段选择 -->
     <div>
       <el-drawer
         :with-header="false"
@@ -73,52 +70,10 @@
         @close="cancle"
         size="25%"
       >
-        <!-- 内部抽屉 -->
-        <div class="inner">
-          <el-drawer
-            title="新增字段"
-            :append-to-body="true"
-            :visible.sync="innerDrawer"
-            size="20%"
-          >
-            <div class="innerForm">
-              <el-form
-                ref="form"
-                :model="form"
-                label-width="80px"
-                label-position="left"
-              >
-                <el-form-item label="字段">
-                  <el-input v-model="form.prop"></el-input>
-                </el-form-item>
-                <el-form-item label="标题">
-                  <el-input v-model="form.filedname"></el-input>
-                </el-form-item>
-                <el-form-item label="默认展示">
-                  <el-radio-group v-model="form.is_show">
-                    <el-radio label="是"></el-radio>
-                    <el-radio label="否"></el-radio>
-                  </el-radio-group>
-                </el-form-item>
-                <el-form-item label="控制界面">
-                  <el-input v-model="form.tablename"></el-input>
-                </el-form-item>
-                <el-form-item label="备注">
-                  <el-input v-model="form.bak"></el-input>
-                </el-form-item>
-              </el-form>
-            </div>
-            <div class="innerBotton">
-              <el-button type="primary">确认</el-button>
-              <el-button>取消</el-button>
-            </div>
-          </el-drawer>
-        </div>
         <div class="main">
           <div class="header">
             <span class="header_left">显示设置</span>
             <span class="header_right">
-              <i class="el-icon-plus icon" @click="add()" title="添加"></i>
               <i class="el-icon-check icon" @click="checked()" title="确定"></i>
               <i class="el-icon-refresh icon" @click="reset()" title="刷新"></i>
               <i class="el-icon-close icon" @click="cancle()" title="关闭"></i>
@@ -161,11 +116,7 @@
     <!-- 表格数据展示 -->
     <div>
       <el-table
-        :data="
-          stockSearchVal != '' && stockSearchSelect != ''
-            ? stockSearchInfo
-            : stockInfo
-        "
+        :data="stockInfo"
         stripe
         style="width: 100%"
         height="100vh"
@@ -228,21 +179,14 @@ export default {
       filedSearchVal: "", //字段搜索值
       upIconShow: [], //红↑显示字段id合集
       downIconShow: [], //绿↓显示字段id合集
-      stockSearchSelect: "",
+      // stockSearchSelect: "",
       stockSearchShow: false, //数据搜索框是否展示
-      stockSearchVal: "",
-      stockSearchInfo: [],
-      filedColorSelect: [], //红绿效果切换字段
-      innerDrawer: false,
-      form: {
-        prop: "",
-        filedname: "",
-        is_show: "",
-        bak: "",
-        is_czzd: "",
-        tablename: "",
-      },
-      searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }],
+      // stockSearchVal: "",
+      // stockSearchInfo: [],
+      filedColorSelect: [], //红绿效果切换字段合集
+      searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //搜索表单值
+      searchVal: [], //搜索值
+      timer: null,
     };
   },
 
@@ -253,7 +197,7 @@ export default {
   },
 
   watch: {
-    // 监听搜索数据
+    // 监听字段搜索数据
     filedSearchVal: {
       handler(newVal, oldVal) {
         if (newVal != "") {
@@ -265,7 +209,7 @@ export default {
         }
       },
     },
-    // 监听股票数据，根据新旧数据实现表格箭头显示
+    // *****监听股票数据，根据新旧数据实现表格箭头显示
     Data: {
       handler(newVal, oldVal) {
         this.upIconShow = [];
@@ -273,8 +217,6 @@ export default {
           return;
         } else {
           newVal.forEach((item, index) => {
-            console.log(item.changpercent);
-            console.log(oldVal[index].changpercent);
             if (item.changpercent > oldVal[index].changpercent) {
               this.upIconShow.push(item.id);
             } else if (item.changpercent < oldVal[index].changpercent) {
@@ -286,62 +228,58 @@ export default {
       // 深度监听
       deep: true,
     },
-    // 监听股票搜索值，实现搜索功能
-    stockSearchVal: {
-      handler(newVal, oldVal) {
-        if (newVal.length > oldVal.length && this.stockSearchSelect == "") {
-          this.$message({
-            message: "请先选择搜索内容",
-            type: "warning",
-          });
-          return;
-        }
-        this.stockSearchInfo = [];
-        if (this.stockSearchSelect) {
-          this.stockSearchInfo = this.stockSearch(newVal, this.stockInfo);
-        }
-      },
-    },
-    stockSearchSelect: {
-      handler(newVal, oldVal) {
-        if (newVal != "") {
-          this.stockSearchVal = "";
-        }
-      },
-    },
   },
 
   methods: {
-    // *****获取所有股票信息  待完善
-    async getAllStock() {
-      let res = await getStockInfoAPI();
-      // this.stockInfo = this.stockInfoFormat(JSON.parse(res));
-      this.stockInfo = JSON.parse(res);
-
-      console.log(this.stockInfo);
+    // 获取所有股票信息  接口待完善 计时器每五秒刷新一次功能
+    getAllStock() {
+      getStockInfoAPI().then((data) => {
+        let date = new Date();
+        console.log(date);
+        let res = this.stockInfoFormat(JSON.parse(data));
+        if (this.searchVal != "") {
+          this.searchVal.forEach((val) => {
+            res = res.filter((data) => {
+              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
+                data = eval(`data.${val.stockSearchSelect}.toString()`);
+                return (
+                  data.substr(0, val.stockSearchVal.length) ==
+                  val.stockSearchVal
+                );
+              } else {
+                return (
+                  !val ||
+                  eval(
+                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                  )
+                );
+              }
+            });
+          });
+        }
+        this.stockInfo = res;
+      });
     },
     // 股票信息搜索功能
-    stockSearch(val, info) {
-      let res = [];
-      if (val) {
-        console.log(val);
-        res = info.filter((data) => {
-          if (typeof eval(`data.${this.stockSearchSelect}`) == "number") {
-            data = eval(`data.${this.stockSearchSelect}.toString()`);
-            return data.substr(0, val.length) == val;
-          } else {
-            console.log("string");
-            return (
-              !val ||
-              eval(`data.${this.stockSearchSelect}.toString().includes(val)`)
-            );
-          }
-        });
-        console.log(res);
-      }
-      return res;
-    },
-    // 根据数据，改变单元格样式  测试字段：cjbl
+    // stockSearch(val, info) {
+    //   let res = [];
+    //   if (val) {
+    //     res = info.filter((data) => {
+    //       if (typeof eval(`data.${this.stockSearchSelect}`) == "number") {
+    //         data = eval(`data.${this.stockSearchSelect}.toString()`);
+    //         return data.substr(0, val.length) == val;
+    //       } else {
+    //         return (
+    //           !val ||
+    //           eval(`data.${this.stockSearchSelect}.toString().includes(val)`)
+    //         );
+    //       }
+    //     });
+    //     console.log(res);
+    //   }
+    //   return res;
+    // },
+    // 根据数据，改变单元格颜色 大于0红色，小于0绿色
     returnStyle(obj) {
       if (
         this.filedColorSelect.includes(obj.column.property) &&
@@ -396,7 +334,7 @@ export default {
     getRowKey(row) {
       return row.id;
     },
-    // 抽屉功能：增删改查
+    // 抽屉功能：字段部分增删改查
     // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
       let res;
@@ -419,7 +357,7 @@ export default {
       }
       this.drawer = false;
     },
-    // 重置按钮，重置选择内容s
+    // 重置按钮，重置选择内容
     async reset() {
       // 清空搜索和多选内容
       this.$refs.filedInfoTable.clearSelection();
@@ -440,16 +378,14 @@ export default {
       this.reset();
       this.drawer = false;
     },
-    // 新增字段
-    add() {
-      this.innerDrawer = true;
-    },
-    // 股票信息初始化 数值格式化
+    // 股票信息初始化 数值格式化保留两位小数 时间显示时刻部分
     stockInfoFormat(info) {
       info.forEach((data) => {
         for (const key in data) {
           if (key != "Id" && typeof data[key] == "number") {
             data[key] = Number(data[key].toFixed(2));
+          } else if (key == "rd_datetime") {
+            data[key] = data[key].substr(data[key].lastIndexOf(" "));
           }
         }
       });
@@ -457,14 +393,24 @@ export default {
     },
     // 添加搜索条件
     addStockSearch() {
-      this.searchForm.push({ stockSearchVal: "", stockSearchSelect: "" });
+      if (this.searchForm.length == this.filedTable.length) {
+        this.$message({
+          message: "搜索条件上限！",
+          type: "warning",
+        });
+      } else {
+        this.searchForm.push({ stockSearchVal: "", stockSearchSelect: "" });
+      }
     },
     // 重置搜索条件
     clareStockSearch() {
       this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
+      this.searchVal = [];
     },
     // 多条件搜索
     checkedStockSearch() {
+      // 关闭搜索栏
+      this.searchVal = [...this.searchForm];
       this.stockSearchShow = false;
       console.log(this.searchForm);
     },
@@ -472,16 +418,23 @@ export default {
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
   async created() {
-    await this.getFileInfo();
     // 每次创建页面自动获取数据
-    // await this.getAllStock();
+
+    await this.getFileInfo();
+    await this.getAllStock();
+    this.timer = window.setInterval(() => {
+      setTimeout(this.getAllStock(), 0);
+    }, 5000);
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   beforeUpdate() {},
   updated() {},
-  beforeDestroy() {}, //生命周期 - 销毁之前
+  beforeDestroy() {
+    clearInterval(this.timer);
+    this.timer = null;
+  }, //生命周期 - 销毁之前
   destroyed() {}, //生命周期 - 销毁完成
   activated() {}, //如果页面有keep-alive缓存功能，这个函数会触发
 };
@@ -562,12 +515,5 @@ export default {
       display: inline-flex;
     }
   }
-}
-.innerForm {
-  padding: 20px;
-}
-.innerBotton {
-  padding: 0 20px;
-  text-align: center;
 }
 </style>
