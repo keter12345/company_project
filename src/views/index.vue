@@ -1,7 +1,6 @@
 <template>
   <div style="height: 100%">
     <el-container>
-      <!-- 顶部导航栏 -->
       <el-header>
         <el-menu
           :default-active="activeIndex"
@@ -20,12 +19,20 @@
         </el-menu>
       </el-header>
       <el-container>
-        <!-- 侧边栏 -->
-        <el-aside width="200px">
-          <el-menu default-active="1" class="el-menu-vertical-demo" router>
+        <el-aside :width="isCollapse ? '65px' : '200px'">
+          <el-menu
+            default-active="/stock"
+            class="el-menu-vertical-demo"
+            router
+            :collapse="isCollapse"
+          >
+            <div class="Collapse" @click="isCollapse = !isCollapse">
+              <i class="el-icon-caret-right" v-if="isCollapse"></i>
+              <i class="el-icon-caret-left" v-else></i>
+            </div>
             <el-submenu index="1">
               <template slot="title">
-                <i class="el-icon-menu"></i>
+                <i class="el-icon-user"></i>
                 <span>用户模块</span>
               </template>
               <el-menu-item-group>
@@ -68,6 +75,7 @@ export default {
   data() {
     return {
       activeIndex: "1",
+      isCollapse: false,
     };
   },
   methods: {
@@ -87,35 +95,58 @@ export default {
   /deep/.el-menu .el-menu-item:hover,
   i:hover {
     color: #409eff;
-    background: white !important;
+    // background: white !important;
   }
 
   /deep/.el-menu .el-menu-item.is-active {
     color: #409eff !important;
-    background: white !important;
+    // background: white !important;
   }
 
   .el-submenu /deep/.el-submenu__title:hover {
     color: #409eff !important;
-    background: white !important;
+    // background: white !important;
+  }
+  .el-menu {
+    height: 100%-1px;
   }
 }
 
-.el-menu {
-  width: 100%-1px;
-  height: 100%-1px;
-}
-
-.el-container {
-  height: calc(100vh - 60px);
-}
+// .el-container {
+//   .el-container {
+//     height: calc(100vh - 60px);
+//   }
+// }
 
 .el-aside {
+  height: calc(100vh - 60px);
+  transition: width 0.25s;
+  -webkit-transition: width 0.25s;
+  -moz-transition: width 0.25s;
+  -webkit-transition: width 0.25s;
+  -o-transition: width 0.25s;
+  overflow-x: hidden;
+  .el-menu-vertical-demo:not(.el-menu--collapse) {
+    width: 100% -1px;
+    height: calc(100vh - 60px);
+  }
+  .el-menu {
+    transition: all 10ms;
+    height: calc(100vh - 60px);
+    .Collapse {
+      padding-left: 20px;
+      // text-align: center;
+      height: 35px;
+      line-height: 35px;
+      font-size: 25px;
+      background-color: #b5daff85;
+    }
+  }
 }
 
 .el-main {
+  width: 100%;
   height: calc(100vh - 60px);
-
   overflow-y: auto;
   // background-color: antiquewhite;
 }

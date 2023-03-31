@@ -119,7 +119,6 @@
         :data="stockInfo"
         stripe
         style="width: 100%"
-        height="100vh"
         :cell-style="returnStyle"
       >
         <template v-for="(item, index) in filedTable">
@@ -463,7 +462,7 @@ export default {
 <style lang="less" scoped>
 .main {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }

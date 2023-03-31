@@ -4,7 +4,6 @@
     <el-table
       :data="searchVal != '' ? searchInfo : IndustryInfo"
       stripe
-      height="100vh"
       style="width: 100%"
     >
       <!-- 子模块 -->
