@@ -122,32 +122,33 @@
         :cell-style="returnStyle"
       >
         <template v-for="(item, index) in filedTable">
-          <!-- 特殊列 -->
+          <!-- 特殊列:颜色变化 -->
           <el-table-column
             :key="index"
             :prop="item.prop"
             :label="item.filedname"
+            sortable
             v-if="filedColorSelect.includes(item.prop)"
           >
             <template slot-scope="scope">
-              <!-- <span>{{ scope.row.changpercent }}</span> -->
               <span>
                 {{ scope.row[item.prop] }}
               </span>
               <i
                 class="el-icon-top"
                 style="color: red"
-                v-if="upIconShow.includes(scope.row.id)"
+                v-if="upIconShow.includes(scope.row.Id)"
               />
               <i
                 class="el-icon-bottom"
                 style="color: green"
-                v-else-if="downIconShow.includes(scope.row.id)"
+                v-else-if="downIconShow.includes(scope.row.Id)"
               />
             </template>
           </el-table-column>
           <!-- 普通数据循环 -->
           <el-table-column
+            sortable
             :key="index"
             :prop="item.prop"
             :label="item.filedname"
@@ -184,11 +185,13 @@ export default {
       // stockSearchSelect: "",
       stockSearchShow: false, //数据搜索框是否展示
       // stockSearchVal: "",
-      stockSearchInfo: [],
-      filedColorSelect: [], //红绿效果切换字段合集
-      searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //搜索表单值
-      searchVal: [], //搜索值
-      timer: null,
+      stockSearchInfo: [], //搜索结果
+      filedColorSelect: [], //红绿效果切换字段值合集
+      filedSortSelect: [], //需要排序字段值合集
+      searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
+      searchVal: [], //最终搜索值
+      timer: null, //每5秒执行一次的计时器
+      test: 1,
     };
   },
 
@@ -212,15 +215,13 @@ export default {
         }
       },
     },
-    // *****监听股票数据，根据新旧数据实现表格箭头显示
+    // 监听股票数据，根据新旧数据实现表格箭头显示
     Data: {
       handler(newVal, oldVal) {
         let index = -1;
         this.upIconShow = [];
         this.downIconShow = [];
-        if (oldVal == null) {
-          return;
-        } else {
+        if (oldVal != null) {
           newVal.forEach((item) => {
             index = oldVal.findIndex((n) => n.Id == item.Id);
             if (index >= 0) {
@@ -253,12 +254,8 @@ export default {
     // 获取所有股票信息  接口待完善 计时器每五秒刷新一次功能
     getAllStock() {
       getStockInfoAPI().then((data) => {
-        // test
-        // let date = new Date();
-        // console.log(date);
         let res = this.stockInfoFormat(JSON.parse(data));
         this.stockInfo = res;
-        console.log(this.stockInfo);
         // 搜索功能
         if (this.searchVal != "") {
           this.searchVal.forEach((val) => {
@@ -315,7 +312,11 @@ export default {
       });
       // 获取需要颜色变化字段
       this.filedTable.forEach((data) => {
-        if (data.is_czzd == 1) this.filedColorSelect.push(data.prop);
+        if (data.is_czzd == 1) {
+          this.filedColorSelect.push(data.prop);
+          // testtest
+          this.filedSortSelect.push(data.prop);
+        }
       });
     },
 

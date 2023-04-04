@@ -75,7 +75,7 @@ export default {
   data() {
     return {
       activeIndex: "1",
-      isCollapse: false,
+      isCollapse: true,
     };
   },
   methods: {
