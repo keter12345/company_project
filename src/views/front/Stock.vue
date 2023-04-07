@@ -15,7 +15,14 @@
         <transition name="el-zoom-in-top">
           <el-card class="box-card" v-show="stockSearchShow">
             <div slot="header" class="clearfix">
-              <span>搜索条件</span>
+              <span>
+                搜索表:
+                <el-radio-group v-model="searchTableSelect">
+                  <el-radio-button label="zb"></el-radio-button>
+                  <el-radio-button
+                    label="ck"
+                  ></el-radio-button> </el-radio-group
+              ></span>
               <span style="float: right">
                 <i
                   class="el-icon-delete icon"
@@ -113,16 +120,21 @@
         </div>
       </el-drawer>
     </div>
-    <!-- 表格数据展示 -->
-    <div>
+    <!-- 表格数据位置 -->
+    <div class="out">
       <el-table
-        :data="stockInfo"
+        id="zbTable"
+        :data="zbStockInfo"
         stripe
-        style="width: 100%"
         :cell-style="returnStyle"
+        height=" calc(calc(100vh - 140px) / 2)"
+        :header-cell-style="{ background: '#EBEEF5' }"
+        @cell-mouse-enter="enter('#zbTable')"
+        @cell-mouse-leave="leave('#zbTable')"
+        class="commonScrollbarTable"
       >
         <template v-for="(item, index) in filedTable">
-          <!-- 特殊列:颜色变化 -->
+          <!-- 特殊列:颜色变化  -->
           <el-table-column
             :key="index"
             :prop="item.prop"
@@ -137,12 +149,58 @@
               <i
                 class="el-icon-top"
                 style="color: red"
-                v-if="upIconShow.includes(scope.row.Id)"
+                v-if="zbUpIconShow.includes(scope.row.Id)"
               />
               <i
                 class="el-icon-bottom"
                 style="color: green"
-                v-else-if="downIconShow.includes(scope.row.Id)"
+                v-else-if="zbDownIconShow.includes(scope.row.Id)"
+              />
+            </template>
+          </el-table-column>
+          <!-- 普通数据循环 -->
+          <el-table-column
+            sortable
+            :key="index"
+            :prop="item.prop"
+            :label="item.filedname"
+            v-else
+          ></el-table-column>
+        </template>
+      </el-table>
+      <el-table
+        id="ckTable"
+        :data="ckStockInfo"
+        stripe
+        :cell-style="returnStyle"
+        height=" calc(calc(100vh - 140px) / 2)"
+        :header-cell-style="{ background: '#EBEEF5' }"
+        @cell-mouse-enter="enter('#ckTable')"
+        @cell-mouse-leave="leave('#ckTable')"
+        class="commonScrollbarTable"
+      >
+        <template v-for="(item, index) in filedTable">
+          <!-- 特殊列:颜色变化  -->
+          <el-table-column
+            :key="index"
+            :prop="item.prop"
+            :label="item.filedname"
+            sortable
+            v-if="filedColorSelect.includes(item.prop)"
+          >
+            <template slot-scope="scope">
+              <span>
+                {{ scope.row[item.prop] }}
+              </span>
+              <i
+                class="el-icon-top"
+                style="color: red"
+                v-if="ckUpIconShow.includes(scope.row.Id)"
+              />
+              <i
+                class="el-icon-bottom"
+                style="color: green"
+                v-else-if="ckDownIconShow.includes(scope.row.Id)"
               />
             </template>
           </el-table-column>
@@ -161,44 +219,48 @@
 </template>
 
 <script>
+import $ from "jquery";
 import {
   getFileInfoAPI,
   updateFilInfoAPI,
-  getStockInfoAPI,
+  getZbStockInfoAPI,
+  getCkStockInfoAPI,
 } from "../../api/index";
 export default {
   components: {},
   data() {
     return {
-      stockInfo: null, //所有股票数据
+      zbStockInfo: null, //所有zb表股票数据
+      ckStockInfo: null,
       filedInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
       filedChecked: [], //已选择的字段
       filedTable: [], //显示在表上的字段
       drawer: false, //设置抽屉是否显示
-      isIndeterminate: true,
-      checkAll: false, //是否全选
+      checkAll: false, //字段是否全选
       filedSearchVal: "", //字段搜索值
-      upIconShow: [], //红↑显示字段id合集
-      downIconShow: [], //绿↓显示字段id合集
-      // stockSearchSelect: "",
+      zbUpIconShow: [], //红↑显示字段id合集
+      zbDownIconShow: [], //绿↓显示字段id合集
+      ckUpIconShow: [], //红↑显示字段id合集
+      ckDownIconShow: [], //绿↓显示字段id合集
       stockSearchShow: false, //数据搜索框是否展示
-      // stockSearchVal: "",
-      stockSearchInfo: [], //搜索结果
       filedColorSelect: [], //红绿效果切换字段值合集
       filedSortSelect: [], //需要排序字段值合集
       searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
       searchVal: [], //最终搜索值
+      searchTableSelect: "zb", //选择需要搜索的表
       timer: null, //每5秒执行一次的计时器
-      test: 1,
     };
   },
 
   computed: {
-    Data() {
+    zbData() {
       // 深拷贝
-      return JSON.parse(JSON.stringify(this.stockInfo));
+      return JSON.parse(JSON.stringify(this.zbStockInfo));
+    },
+    ckDate() {
+      return JSON.parse(JSON.stringify(this.ckStockInfo));
     },
   },
 
@@ -216,11 +278,11 @@ export default {
       },
     },
     // 监听股票数据，根据新旧数据实现表格箭头显示
-    Data: {
+    zbData: {
       handler(newVal, oldVal) {
         let index = -1;
-        this.upIconShow = [];
-        this.downIconShow = [];
+        this.zbUpIconShow = [];
+        this.zbDownIconShow = [];
         if (oldVal != null) {
           newVal.forEach((item) => {
             index = oldVal.findIndex((n) => n.Id == item.Id);
@@ -231,13 +293,45 @@ export default {
                     `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
                   )
                 ) {
-                  this.upIconShow.push(item.Id);
+                  this.zbUpIconShow.push(item.Id);
                 } else if (
                   eval(
                     `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
                   )
                 ) {
-                  this.downIconShow.push(item.Id);
+                  this.zbDownIconShow.push(item.Id);
+                }
+              });
+            }
+            index = -1;
+          });
+        }
+      },
+      // 深度监听
+      deep: true,
+    },
+    ckData: {
+      handler(newVal, oldVal) {
+        let index = -1;
+        this.ckUpIconShow = [];
+        this.ckDownIconShow = [];
+        if (oldVal != null) {
+          newVal.forEach((item) => {
+            index = oldVal.findIndex((n) => n.Id == item.Id);
+            if (index >= 0) {
+              this.filedColorSelect.forEach((val) => {
+                if (
+                  eval(
+                    `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
+                  )
+                ) {
+                  this.ckUpIconShow.push(item.Id);
+                } else if (
+                  eval(
+                    `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
+                  )
+                ) {
+                  this.ckDownIconShow.push(item.Id);
                 }
               });
             }
@@ -253,11 +347,10 @@ export default {
   methods: {
     // 获取所有股票信息  接口待完善 计时器每五秒刷新一次功能
     getAllStock() {
-      getStockInfoAPI().then((data) => {
+      getZbStockInfoAPI().then((data) => {
         let res = this.stockInfoFormat(JSON.parse(data));
-        this.stockInfo = res;
         // 搜索功能
-        if (this.searchVal != "") {
+        if (this.searchVal != "" && this.searchTableSelect == "zb") {
           this.searchVal.forEach((val) => {
             res = res.filter((data) => {
               if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
@@ -276,15 +369,44 @@ export default {
               }
             });
           });
-          this.stockSearchInfo = res;
         }
+        this.zbStockInfo = res;
+      });
+      getCkStockInfoAPI().then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        // 搜索功能
+        if (this.searchVal != "" && this.searchTableSelect == "ck") {
+          this.searchVal.forEach((val) => {
+            res = res.filter((data) => {
+              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
+                data = eval(`data.${val.stockSearchSelect}.toString()`);
+                return (
+                  data.substr(0, val.stockSearchVal.length) ==
+                  val.stockSearchVal
+                );
+              } else {
+                return (
+                  !val ||
+                  eval(
+                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                  )
+                );
+              }
+            });
+          });
+        }
+        this.ckStockInfo = res;
       });
     },
     // 根据数据，改变单元格颜色 大于0红色，小于0绿色
     returnStyle(obj) {
+      let filed = this.filedInfo.filter((item) => {
+        return item.prop === obj.column.property;
+      });
       if (
         this.filedColorSelect.includes(obj.column.property) &&
-        eval(`obj.row.${obj.column.property}`) > 0
+        eval(`parseFloat(obj.row.${obj.column.property})`) >
+          parseFloat(filed[0].chengdu)
       ) {
         return {
           color: "red",
@@ -292,7 +414,8 @@ export default {
       }
       if (
         this.filedColorSelect.includes(obj.column.property) &&
-        eval(`obj.row.${obj.column.property}`) < 0
+        eval(`parseFloat(obj.row.${obj.column.property})`) <
+          parseFloat(filed[0].chengdu)
       ) {
         return {
           color: "green",
@@ -354,7 +477,6 @@ export default {
       } else if (
         JSON.stringify(oldVal.sort()) != JSON.stringify(newVal.sort())
       ) {
-        console.log(newVal);
         res = await updateFilInfoAPI(newVal);
         // this.filedTable = this.filedChecked;
         // 更新页面数据
@@ -439,12 +561,19 @@ export default {
         setTimeout(fun(), 0);
       }, dely);
     },
+    enter(id) {
+      this.$(id).addClass("scrollbarShow");
+    },
+    leave(id) {
+      this.$(id).removeClass("scrollbarShow");
+    },
   },
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
   async created() {
     // 每次创建页面自动获取数据
     await this.getFileInfo();
+
     this.setTimer(this.getAllStock, 5000);
   },
   beforeMount() {},
@@ -466,29 +595,28 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
+  .header {
+    padding: 0 20px;
+    height: 50px;
+    text-align: center;
+    line-height: 50px;
 
-.header {
-  padding: 0 20px;
-  height: 50px;
-  text-align: center;
-  line-height: 50px;
-
-  .header_left {
-    float: left;
-  }
-
-  .header_right {
-    float: right;
-
-    .icon {
-      font-size: 20px;
-      padding: 5px;
+    .header_left {
+      float: left;
     }
 
-    .icon:hover {
-      color: #409eff;
-      content: attr(title);
+    .header_right {
+      float: right;
+
+      .icon {
+        font-size: 20px;
+        padding: 5px;
+      }
+
+      .icon:hover {
+        color: #409eff;
+        content: attr(title);
+      }
     }
   }
 }
@@ -531,6 +659,28 @@ export default {
       justify-content: space-around;
       display: inline-flex;
     }
+  }
+}
+.out {
+  height: calc(100vh - 140px) !important;
+  width: 100%;
+  // /deep/.el-table__body-wrapper::-webkit-scrollbar {
+  //   width: 0;
+  // }
+  .commonScrollbarTable /deep/ .el-table__body-wrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 10px;
+    display: none;
+  }
+  //滚动条的滑块
+  .commonScrollbarTable
+    /deep/
+    .el-table__body-wrapper::-webkit-scrollbar-thumb {
+    background-color: rgb(211, 213, 217);
+    border-radius: 15px;
+  }
+  .scrollbarShow /deep/ .el-table__body-wrapper::-webkit-scrollbar {
+    display: block;
   }
 }
 </style>

@@ -9,9 +9,13 @@ export const updateFilInfo = (ids) => request({
     method: "GET",
     url: `updateSysshow/?ids=${ids}`
 })
-export const getStockInfo = () => request({
+export const getZbStockInfo = () => request({
     method: 'GET',
     url: 'stockshow_zb/'
+})
+export const getCkStockInfo = () => request({
+    method: 'GET',
+    url: 'stockshow_ck/'
 })
 
 

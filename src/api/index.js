@@ -1,5 +1,5 @@
 import { getAllBGList, updateBGLevel, updateItemStatus } from './industry'
-import { getFileInfo, updateFilInfo, getStockInfo } from './stock'
+import { getFileInfo, updateFilInfo, getZbStockInfo, getCkStockInfo } from './stock'
 
 export const getAllBGListAPI = getAllBGList
 
@@ -11,4 +11,6 @@ export const getFileInfoAPI = getFileInfo
 
 export const updateFilInfoAPI = updateFilInfo
 
-export const getStockInfoAPI = getStockInfo
+export const getZbStockInfoAPI = getZbStockInfo
+
+export const getCkStockInfoAPI = getCkStockInfo
