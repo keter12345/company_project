@@ -1,25 +1,20 @@
 <template>
   <div style="height: 100%">
     <el-container>
-      <el-header>
-        <el-menu
-          :default-active="activeIndex"
-          class="el-menu-demo"
-          mode="horizontal"
-          @select="handleSelect"
-        >
+      <!-- <el-header>
+        <el-menu class="el-menu-demo" mode="horizontal">
           <el-menu-item index="1">首页</el-menu-item>
-
           <el-menu-item index="2">消息中心</el-menu-item>
         </el-menu>
-      </el-header>
+      </el-header> -->
       <el-container>
         <el-aside :width="isCollapse ? '65px' : '200px'">
           <el-menu
-            default-active="/stock"
+            :default-active="activeIndex"
             class="el-menu-vertical-demo"
             router
             :collapse="isCollapse"
+            @select="handleSelect"
           >
             <div class="Collapse" @click="isCollapse = !isCollapse">
               <i class="el-icon-caret-right" v-if="isCollapse"></i>
@@ -46,7 +41,7 @@
               </el-menu-item-group>
             </el-submenu>
 
-            <el-submenu index="2">
+            <el-submenu index="/filed">
               <template slot="title">
                 <i class="el-icon-menu"></i>
                 <span>管理模块</span>
@@ -73,12 +68,14 @@
 export default {
   data() {
     return {
-      activeIndex: "1",
+      activeIndex: "/industry",
       isCollapse: true,
     };
   },
   methods: {
-    handleSelect(key, keyPath) {},
+    handleSelect(key, keyPath) {
+      this.activeIndex = keyPath[1];
+    },
   },
 };
 </script>
