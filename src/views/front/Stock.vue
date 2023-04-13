@@ -134,13 +134,25 @@
         class="commonScrollbarTable"
       >
         <template v-for="(item, index) in filedTable">
+          <el-table-column
+            :key="index"
+            :prop="item.prop"
+            :label="item.filedname"
+            v-if="item.prop == 'ts_code'"
+          >
+            <template slot-scope="scope">
+              <el-link target="_blank" @click="openDetail">{{
+                scope.row.ts_code
+              }}</el-link>
+            </template>
+          </el-table-column>
           <!-- 特殊列:颜色变化  -->
           <el-table-column
             :key="index"
             :prop="item.prop"
             :label="item.filedname"
             sortable
-            v-if="filedColorSelect.includes(item.prop)"
+            v-else-if="filedColorSelect.includes(item.prop)"
           >
             <template slot-scope="scope">
               <span>
@@ -167,6 +179,17 @@
             v-else
           ></el-table-column>
         </template>
+        <el-table-column label="test">
+          <template v-for="item in testData">
+            <div :key="item.bk_code">
+              <el-link target="_blank" @click="openDetail">{{
+                item.bk_name_x
+              }}</el-link>
+              <span> {{ item.bk_changpercent }}</span
+              ><br />
+            </div>
+          </template>
+        </el-table-column>
       </el-table>
       <el-table
         id="ckTable"
@@ -213,8 +236,20 @@
             v-else
           ></el-table-column>
         </template>
+        <el-table-column label="test">
+          <template v-for="item in testData">
+            <div :key="item.bk_code">
+              <el-link target="_blank" @click="openDetail">{{
+                item.bk_name_x
+              }}</el-link>
+              <span> {{ item.bk_changpercent }}</span
+              ><br />
+            </div>
+          </template>
+        </el-table-column>
       </el-table>
     </div>
+    <el-dialog title="标题" :visible.sync="detailVisible"> test </el-dialog>
   </div>
 </template>
 
@@ -251,6 +286,24 @@ export default {
       searchVal: [], //最终搜索值
       searchTableSelect: "zb", //选择需要搜索的表
       timer: null, //每5秒执行一次的计时器
+      testData: [
+        {
+          bk_code: "308855",
+          bk_name_x: "跨境支付（CIPS）",
+          bk_changpercent: 2.6936170251,
+        },
+        {
+          bk_code: "301715",
+          bk_name_x: "证金持股",
+          bk_changpercent: 0.5913278038,
+        },
+        {
+          bk_code: "300900",
+          bk_name_x: "融资融券",
+          bk_changpercent: 0.5913278038,
+        },
+      ],
+      detailVisible: false, //板块详情展示页面
     };
   },
 
@@ -566,6 +619,10 @@ export default {
     },
     leave(id) {
       this.$(id).removeClass("scrollbarShow");
+    },
+    // 打开板块详情页面
+    openDetail() {
+      this.detailVisible = true;
     },
   },
   beforeCreate() {}, //生命周期 - 创建之前

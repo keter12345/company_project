@@ -11,11 +11,6 @@
           <el-menu-item index="1">首页</el-menu-item>
 
           <el-menu-item index="2">消息中心</el-menu-item>
-          <el-menu-item index="3"
-            ><a href="https://www.ele.me" target="_blank"
-              >订单管理</a
-            ></el-menu-item
-          >
         </el-menu>
       </el-header>
       <el-container>
@@ -40,9 +35,13 @@
                   <i class="el-icon-s-home"></i>
                   <span slot="title">行业详情</span>
                 </el-menu-item>
-                <el-menu-item index="/stock">
-                  <i class="el-icon-chat-dot-square"></i>
+                <el-menu-item index="/concept">
+                  <i class="el-icon-s-cooperation"></i>
                   <span slot="title">概念详情</span>
+                </el-menu-item>
+                <el-menu-item index="/stock">
+                  <i class="el-icon-s-data"></i>
+                  <span slot="title">数据展示</span>
                 </el-menu-item>
               </el-menu-item-group>
             </el-submenu>

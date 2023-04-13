@@ -2,7 +2,7 @@
   <div class="body">
     <!-- 表格部分 -->
     <el-table
-      :data="searchVal != '' ? searchInfo : IndustryInfo"
+      :data="searchVal != '' ? searchInfo : ConceptInfo"
       stripe
       style="width: 100%"
     >
@@ -115,7 +115,7 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="行业名称" width="180">
+      <el-table-column label="概念名称" width="180">
         <template slot-scope="scope">
           <el-link :href="scope.row.bk_www" target="_blank">{{
             scope.row.bk_name
@@ -124,7 +124,7 @@
       >
       <el-table-column
         prop="bk_code"
-        label="行业代码"
+        label="概念代码"
         width="180"
       ></el-table-column>
       <el-table-column label="备注"> </el-table-column>
@@ -171,19 +171,19 @@
           <el-button
             size="mini"
             type="primary"
-            @click="updateIndustryLevel(scope.row.bk_code, '0')"
+            @click="updateConceptLevel(scope.row.bk_code, '0')"
             >正常</el-button
           >
           <el-button
             size="mini"
             type="warning"
-            @click="updateIndustryLevel(scope.row.bk_code, '1')"
+            @click="updateConceptLevel(scope.row.bk_code, '1')"
             >热点</el-button
           >
           <el-button
             size="mini"
             type="danger"
-            @click="updateIndustryLevel(scope.row.bk_code, '2')"
+            @click="updateConceptLevel(scope.row.bk_code, '2')"
             >重要热点</el-button
           >
         </template>
@@ -194,32 +194,32 @@
 
 <script>
 import {
-  getAllBGListAPI,
-  updateBGLevelAPI,
-  updateItemStatusAPI,
+  getAllBKGNInfoAPI,
+  updateGNLevelAPI,
+  updateGNItemStatusAPI,
 } from "../../api/index.js";
 export default {
-  name: "Industry",
+  name: "Concept",
   components: {},
   data() {
     return {
-      IndustryInfo: null, //储存所有数据
+      ConceptInfo: null, //储存所有数据
       searchInfo: [], //存储搜索结果数据
-      importLevel: ["正常", "热点", "重要热点"], //行业重要程度分类
+      importLevel: ["正常", "热点", "重要热点"], //概念重要程度分类
       stockStatus: ["普通", "重要", "龙头"], //股票状态分类
       stockSelection: [], //多选框所选中的股票数据
       options: [
         //选择器选项
         {
-          value: "行业",
-          label: "行业",
+          value: "概念",
+          label: "概念",
         },
         {
           value: "股票",
           label: "股票",
         },
       ],
-      searchSelect: "行业", //选择器选择结果，默认“行业”
+      searchSelect: "概念", //选择器选择结果，默认“概念”
       searchVal: "", //搜索值
     };
   },
@@ -230,9 +230,9 @@ export default {
     searchVal: {
       handler(val, oldVal) {
         // 搜索前数据刷新
-        this.getAllBG();
+        this.getAllGN();
         this.searchInfo = [];
-        this.searchInfo = this.Search(val, this.IndustryInfo);
+        this.searchInfo = this.Search(val, this.ConceptInfo);
       },
     },
   },
@@ -242,8 +242,8 @@ export default {
     Search(val, info) {
       let res = [];
       if (val) {
-        if (this.searchSelect == "行业") {
-          // 搜索选项为'行业'进行搜索
+        if (this.searchSelect == "概念") {
+          // 搜索选项为'概念'进行搜索
           res = info.filter(
             (data) =>
               !val ||
@@ -251,6 +251,7 @@ export default {
               data.bk_name.toString().includes(val)
           );
         } else if (this.searchSelect == "股票") {
+          console.log("股票");
           // 搜索选项为'股票'进行搜索
           info.forEach((item) => {
             item.values = item.values.filter(
@@ -269,21 +270,21 @@ export default {
       // 返回结果
       return res;
     },
-    // 方法：获取所有行业信息
-    async getAllBG() {
-      let res = await getAllBGListAPI();
-      this.IndustryInfo = JSON.parse(res);
+    // 方法：获取所有概念信息
+    async getAllGN() {
+      let res = await getAllBKGNInfoAPI();
+      this.ConceptInfo = JSON.parse(res);
     },
 
-    // 方法：修改行业信息重要程度，bk_code, val：修改值
-    async updateIndustryLevel(bk_code, val) {
+    // 方法：修改概念信息重要程度，bk_code, val：修改值
+    async updateConceptLevel(bk_code, val) {
       let res = "";
       try {
-        res = await updateBGLevelAPI(bk_code, val);
-        this.IndustryInfo = JSON.parse(res);
+        res = await updateGNLevelAPI(bk_code, val);
+        this.ConceptInfo = JSON.parse(res);
         // 有搜索值时，展示更新后的搜索结果
         if (this.searchVal != "") {
-          this.searchInfo = this.Search(this.searchVal, this.IndustryInfo);
+          this.searchInfo = this.Search(this.searchVal, this.ConceptInfo);
         }
         // 更新成功提示框
         this.$message({
@@ -305,7 +306,6 @@ export default {
         data = this.stockSelection.map((item) => {
           return item.ts_code;
         });
-        console.log(data);
         if (data.length < 1) {
           this.$message({
             message: "请选择内容",
@@ -317,15 +317,15 @@ export default {
         data.push(row.ts_code);
       }
 
-      let res = await updateItemStatusAPI(bk_code, data, status);
+      let res = await updateGNItemStatusAPI(bk_code, data, status);
       if (res == 1) {
-        let info = JSON.parse(await getAllBGListAPI());
+        let info = JSON.parse(await getAllBKGNInfoAPI());
         // 有搜索值时，展示更新后的搜索结果，否则更新所有结果
         if (this.searchVal != "") {
           info = this.Search(this.searchVal, info);
           this.searchInfo[index].values = info[index].values;
         } else {
-          this.IndustryInfo[index].values = info[index].values;
+          this.ConceptInfo[index].values = info[index].values;
         }
         // 更新成功提示框
         this.$message({
@@ -362,7 +362,7 @@ export default {
     },
   },
   created() {
-    this.getAllBG();
+    this.getAllGN();
   },
 };
 </script>

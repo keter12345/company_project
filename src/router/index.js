@@ -4,6 +4,7 @@ import Industry from '../views/front/Industry.vue'
 import Stock from '../views/front/Stock.vue'
 import Front from '../views/index'
 import Filed from '../views/admin/filed'
+import Concept from '../views/front/Concept'
 Vue.use(VueRouter)
 
 const routes = [
@@ -27,9 +28,18 @@ const routes = [
         path: '/stock',
         component: Stock,
         meta: {
+          title: '数据展示'
+        }
+      },
+      {
+        path: '/concept',
+        component: Concept,
+        meta: {
           title: '概念详情'
         }
       },
+
+
       {
         path: '/filed',
         component: Filed,
