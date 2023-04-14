@@ -12,8 +12,10 @@
     "cors": "^2.8.5",
     "element-ui": "^2.15.13",
     "jquery": "^3.6.4",
+    "splitpanes": "^2.4.1",
     "vue": "^2.6.14",
     "vue-router": "^3.5.1",
+    "vue-splitpane": "^1.0.6",
     "vuex": "^3.6.2"
   },
   "devDependencies": {

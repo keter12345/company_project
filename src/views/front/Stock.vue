@@ -121,33 +121,45 @@
       </el-drawer>
     </div>
     <!-- 表格数据位置 -->
-    <div class="out">
-      <div @mouseenter="enter('#zbTable')" @mouseleave="leave('#zbTable')">
-        <el-table
-          id="zbTable"
-          :data="zbStockInfo"
-          stripe
-          :cell-style="returnStyle"
-          height=" calc(calc(100vh - 140px) / 2)"
-          :header-cell-style="{ background: '#EBEEF5' }"
-          class="commonScrollbarTable"
-        >
-          <!-- id字段 -->
-          <template v-for="(item, index) in filedTable">
-            <el-table-column
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              v-if="item.prop == 'ts_code'"
+    <div class="out" ref="out">
+      <splitpanes
+        @resize="(paneSize = $event[0].size), resize()"
+        horizontal
+        class="default-theme"
+      >
+        <pane :size="paneSize">
+          <!-- <template slot="paneL"> -->
+          <div
+            class="zbPane"
+            ref="zbPane"
+            @mouseenter="enter('#zbTable')"
+            @mouseleave="leave('#zbTable')"
+          >
+            <el-table
+              id="zbTable"
+              :height="zbHeight"
+              :data="zbStockInfo"
+              stripe
+              :cell-style="returnStyle"
+              :header-cell-style="{ background: '#EBEEF5' }"
+              class="commonScrollbarTable"
             >
-              <template slot-scope="scope">
-                <el-link target="_blank" @click="openDetail">{{
-                  scope.row.ts_code
-                }}</el-link>
-              </template>
-            </el-table-column>
-            <!-- 概念详情字段 -->
-            <!-- <el-table-column
+              <!-- id字段 -->
+              <template v-for="(item, index) in filedTable">
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-if="item.prop == 'ts_code'"
+                >
+                  <template slot-scope="scope">
+                    <el-link target="_blank" @click="openDetail">{{
+                      scope.row.ts_code
+                    }}</el-link>
+                  </template>
+                </el-table-column>
+                <!-- 概念详情字段 -->
+                <!-- <el-table-column
               :key="index"
               :prop="item.prop"
               :label="item.filedname"
@@ -164,66 +176,75 @@
                 </div>
               </template>
             </el-table-column> -->
-            <!-- 特殊列:颜色变化  -->
-            <el-table-column
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              sortable
-              v-else-if="filedColorSelect.includes(item.prop)"
-            >
-              <template slot-scope="scope">
-                <span>
-                  {{ scope.row[item.prop] }}
-                </span>
-                <i
-                  class="el-icon-top"
-                  style="color: red"
-                  v-if="zbUpIconShow.includes(scope.row.Id)"
-                />
-                <i
-                  class="el-icon-bottom"
-                  style="color: green"
-                  v-else-if="zbDownIconShow.includes(scope.row.Id)"
-                />
+                <!-- 特殊列:颜色变化  -->
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  sortable
+                  v-else-if="filedColorSelect.includes(item.prop)"
+                >
+                  <template slot-scope="scope">
+                    <span>
+                      {{ scope.row[item.prop] }}
+                    </span>
+                    <i
+                      class="el-icon-top"
+                      style="color: red"
+                      v-if="zbUpIconShow.includes(scope.row.Id)"
+                    />
+                    <i
+                      class="el-icon-bottom"
+                      style="color: green"
+                      v-else-if="zbDownIconShow.includes(scope.row.Id)"
+                    />
+                  </template>
+                </el-table-column>
+                <!-- 普通数据循环 -->
+                <el-table-column
+                  sortable
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-else
+                ></el-table-column>
               </template>
-            </el-table-column>
-            <!-- 普通数据循环 -->
-            <el-table-column
-              sortable
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              v-else
-            ></el-table-column>
-          </template>
-        </el-table>
-      </div>
-      <div @mouseenter="enter('#ckTable')" @mouseleave="leave('#ckTable')">
-        <el-table
-          id="ckTable"
-          :data="ckStockInfo"
-          stripe
-          :cell-style="returnStyle"
-          height=" calc(calc(100vh - 140px) / 2)"
-          :header-cell-style="{ background: '#EBEEF5' }"
-          class="commonScrollbarTable"
-        >
-          <template v-for="(item, index) in filedTable">
-            <el-table-column
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              v-if="item.prop == 'ts_code'"
+            </el-table>
+          </div>
+        </pane>
+        <!-- </template> -->
+        <!-- <template slot="paneR"> -->
+        <pane :size="100 - paneSize">
+          <div
+            class="ckPane"
+            ref="ckPane"
+            @mouseenter="enter('#ckTable')"
+            @mouseleave="leave('#ckTable')"
+          >
+            <el-table
+              id="ckTable"
+              :height="ckHeight"
+              :data="ckStockInfo"
+              stripe
+              :cell-style="returnStyle"
+              :header-cell-style="{ background: '#EBEEF5' }"
+              class="commonScrollbarTable"
             >
-              <template slot-scope="scope">
-                <el-link target="_blank" @click="openDetail">{{
-                  scope.row.ts_code
-                }}</el-link>
-              </template>
-            </el-table-column>
-            <!-- 概念详情字段 -->
-            <!-- <el-table-column
+              <template v-for="(item, index) in filedTable">
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-if="item.prop == 'ts_code'"
+                >
+                  <template slot-scope="scope">
+                    <el-link target="_blank" @click="openDetail">{{
+                      scope.row.ts_code
+                    }}</el-link>
+                  </template>
+                </el-table-column>
+                <!-- 概念详情字段 -->
+                <!-- <el-table-column
               :key="index"
               :prop="item.prop"
               :label="item.filedname"
@@ -240,41 +261,44 @@
                 </div>
               </template>
             </el-table-column> -->
-            <!-- 特殊列:颜色变化  -->
-            <el-table-column
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              sortable
-              v-else-if="filedColorSelect.includes(item.prop)"
-            >
-              <template slot-scope="scope">
-                <span>
-                  {{ scope.row[item.prop] }}
-                </span>
-                <i
-                  class="el-icon-top"
-                  style="color: red"
-                  v-if="ckUpIconShow.includes(scope.row.Id)"
-                />
-                <i
-                  class="el-icon-bottom"
-                  style="color: green"
-                  v-else-if="ckDownIconShow.includes(scope.row.Id)"
-                />
+                <!-- 特殊列:颜色变化  -->
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  sortable
+                  v-else-if="filedColorSelect.includes(item.prop)"
+                >
+                  <template slot-scope="scope">
+                    <span>
+                      {{ scope.row[item.prop] }}
+                    </span>
+                    <i
+                      class="el-icon-top"
+                      style="color: red"
+                      v-if="ckUpIconShow.includes(scope.row.Id)"
+                    />
+                    <i
+                      class="el-icon-bottom"
+                      style="color: green"
+                      v-else-if="ckDownIconShow.includes(scope.row.Id)"
+                    />
+                  </template>
+                </el-table-column>
+                <!-- 普通数据循环 -->
+                <el-table-column
+                  sortable
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-else
+                ></el-table-column>
               </template>
-            </el-table-column>
-            <!-- 普通数据循环 -->
-            <el-table-column
-              sortable
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              v-else
-            ></el-table-column>
-          </template>
-        </el-table>
-      </div>
+            </el-table>
+          </div>
+        </pane>
+        <!-- </template> -->
+      </splitpanes>
     </div>
     <el-dialog title="标题" :visible.sync="detailVisible"> test </el-dialog>
   </div>
@@ -288,10 +312,14 @@ import {
   getZbStockInfoAPI,
   getCkStockInfoAPI,
 } from "../../api/index";
+import { Splitpanes, Pane } from "splitpanes";
+
+import "splitpanes/dist/splitpanes.css";
 export default {
-  components: {},
+  components: { Splitpanes, Pane },
   data() {
     return {
+      paneSize: 50, //上 zb表模块高度百分比
       zbStockInfo: null, //所有zb表股票数据
       ckStockInfo: null,
       filedInfo: [
@@ -330,6 +358,8 @@ export default {
         //   bk_changpercent: 0.5913278038,
         // },
       ],
+      zbHeight: "100%", //zb表高度
+      ckHeight: "100%", //ck表高度
       detailVisible: false, //板块详情展示页面
     };
   },
@@ -652,18 +682,28 @@ export default {
     openDetail() {
       this.detailVisible = true;
     },
+    // 表格高度自适应
+    autoHeight() {
+      this.$nextTick(() => {
+        this.zbHeight = window.getComputedStyle(this.$refs.zbPane).height;
+        this.ckHeight = window.getComputedStyle(this.$refs.ckPane).height;
+      });
+    },
+    resize() {
+      // this.paneSize = $event[0].size;
+      this.autoHeight();
+    },
   },
   beforeCreate() {}, //生命周期 - 创建之前
   //生命周期 - 创建完成（可以访问当前this实例）
   async created() {
     // 每次创建页面自动获取数据
     await this.getFileInfo();
+    this.setTimer(this.getAllStock, 5000);
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {
-    this.setTimer(this.getAllStock, 5000);
-  },
+  mounted() {},
   beforeUpdate() {},
   updated() {},
   beforeDestroy() {
@@ -748,11 +788,18 @@ export default {
 }
 .out {
   height: calc(100vh - 140px) !important;
+  // overflow: hidden;
   width: 100%;
   // /deep/.el-table__body-wrapper::-webkit-scrollbar {
   //   width: 0;
   // }
-
+  .splitpanes {
+    height: calc(100vh- 60px);
+  }
+  .zbPane,
+  .ckPane {
+    height: 100%;
+  }
   .commonScrollbarTable /deep/ .el-table__body-wrapper::-webkit-scrollbar {
     width: 6px;
     height: 10px;
