@@ -122,128 +122,159 @@
     </div>
     <!-- 表格数据位置 -->
     <div class="out">
-      <el-table
-        id="zbTable"
-        :data="zbStockInfo"
-        stripe
-        :cell-style="returnStyle"
-        height=" calc(calc(100vh - 140px) / 2)"
-        :header-cell-style="{ background: '#EBEEF5' }"
-        @cell-mouse-enter="enter('#zbTable')"
-        @cell-mouse-leave="leave('#zbTable')"
-        class="commonScrollbarTable"
-      >
-        <!-- id字段 -->
-        <template v-for="(item, index) in filedTable">
-          <el-table-column
-            :key="index"
-            :prop="item.prop"
-            :label="item.filedname"
-            v-if="item.prop == 'ts_code'"
-          >
-            <template slot-scope="scope">
-              <el-link target="_blank" @click="openDetail">{{
-                scope.row.ts_code
-              }}</el-link>
-            </template>
-          </el-table-column>
-          <!-- 概念详情字段 -->
-          <!-- <el-table-column
-            :key="index"
-            :prop="item.prop"
-            :label="item.filedname"
-            v-if="item.prop == 'detail'"
-          >
-            <template v-for="item in testData">
-              <div :key="item.bk_code">
+      <div @mouseenter="enter('#zbTable')" @mouseleave="leave('#zbTable')">
+        <el-table
+          id="zbTable"
+          :data="zbStockInfo"
+          stripe
+          :cell-style="returnStyle"
+          height=" calc(calc(100vh - 140px) / 2)"
+          :header-cell-style="{ background: '#EBEEF5' }"
+          class="commonScrollbarTable"
+        >
+          <!-- id字段 -->
+          <template v-for="(item, index) in filedTable">
+            <el-table-column
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              v-if="item.prop == 'ts_code'"
+            >
+              <template slot-scope="scope">
                 <el-link target="_blank" @click="openDetail">{{
-                  item.bk_name_x
+                  scope.row.ts_code
                 }}</el-link>
-                <span> {{ item.bk_changpercent }}</span
-                ><br />
-              </div>
-            </template>
-          </el-table-column> -->
-          <!-- 特殊列:颜色变化  -->
-          <el-table-column
-            :key="index"
-            :prop="item.prop"
-            :label="item.filedname"
-            sortable
-            v-else-if="filedColorSelect.includes(item.prop)"
-          >
-            <template slot-scope="scope">
-              <span>
-                {{ scope.row[item.prop] }}
-              </span>
-              <i
-                class="el-icon-top"
-                style="color: red"
-                v-if="zbUpIconShow.includes(scope.row.Id)"
-              />
-              <i
-                class="el-icon-bottom"
-                style="color: green"
-                v-else-if="zbDownIconShow.includes(scope.row.Id)"
-              />
-            </template>
-          </el-table-column>
-          <!-- 普通数据循环 -->
-          <el-table-column
-            sortable
-            :key="index"
-            :prop="item.prop"
-            :label="item.filedname"
-            v-else
-          ></el-table-column>
-        </template>
-      </el-table>
-      <el-table
-        id="ckTable"
-        :data="ckStockInfo"
-        stripe
-        :cell-style="returnStyle"
-        height=" calc(calc(100vh - 140px) / 2)"
-        :header-cell-style="{ background: '#EBEEF5' }"
-        @cell-mouse-enter="enter('#ckTable')"
-        @cell-mouse-leave="leave('#ckTable')"
-        class="commonScrollbarTable"
-      >
-        <template v-for="(item, index) in filedTable">
-          <!-- 特殊列:颜色变化  -->
-          <el-table-column
-            :key="index"
-            :prop="item.prop"
-            :label="item.filedname"
-            sortable
-            v-if="filedColorSelect.includes(item.prop)"
-          >
-            <template slot-scope="scope">
-              <span>
-                {{ scope.row[item.prop] }}
-              </span>
-              <i
-                class="el-icon-top"
-                style="color: red"
-                v-if="ckUpIconShow.includes(scope.row.Id)"
-              />
-              <i
-                class="el-icon-bottom"
-                style="color: green"
-                v-else-if="ckDownIconShow.includes(scope.row.Id)"
-              />
-            </template>
-          </el-table-column>
-          <!-- 普通数据循环 -->
-          <el-table-column
-            sortable
-            :key="index"
-            :prop="item.prop"
-            :label="item.filedname"
-            v-else
-          ></el-table-column>
-        </template>
-      </el-table>
+              </template>
+            </el-table-column>
+            <!-- 概念详情字段 -->
+            <!-- <el-table-column
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              v-else-if="item.prop == 'detail'"
+              fixed="right"
+            >
+              <template v-for="item in testData">
+                <div :key="item.bk_code">
+                  <el-link target="_blank" @click="openDetail">{{
+                    item.bk_name_x
+                  }}</el-link>
+                  <span> {{ item.bk_changpercent }}</span
+                  ><br />
+                </div>
+              </template>
+            </el-table-column> -->
+            <!-- 特殊列:颜色变化  -->
+            <el-table-column
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              sortable
+              v-else-if="filedColorSelect.includes(item.prop)"
+            >
+              <template slot-scope="scope">
+                <span>
+                  {{ scope.row[item.prop] }}
+                </span>
+                <i
+                  class="el-icon-top"
+                  style="color: red"
+                  v-if="zbUpIconShow.includes(scope.row.Id)"
+                />
+                <i
+                  class="el-icon-bottom"
+                  style="color: green"
+                  v-else-if="zbDownIconShow.includes(scope.row.Id)"
+                />
+              </template>
+            </el-table-column>
+            <!-- 普通数据循环 -->
+            <el-table-column
+              sortable
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              v-else
+            ></el-table-column>
+          </template>
+        </el-table>
+      </div>
+      <div @mouseenter="enter('#ckTable')" @mouseleave="leave('#ckTable')">
+        <el-table
+          id="ckTable"
+          :data="ckStockInfo"
+          stripe
+          :cell-style="returnStyle"
+          height=" calc(calc(100vh - 140px) / 2)"
+          :header-cell-style="{ background: '#EBEEF5' }"
+          class="commonScrollbarTable"
+        >
+          <template v-for="(item, index) in filedTable">
+            <el-table-column
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              v-if="item.prop == 'ts_code'"
+            >
+              <template slot-scope="scope">
+                <el-link target="_blank" @click="openDetail">{{
+                  scope.row.ts_code
+                }}</el-link>
+              </template>
+            </el-table-column>
+            <!-- 概念详情字段 -->
+            <!-- <el-table-column
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              v-else-if="item.prop == 'detail'"
+              fixed="right"
+            >
+              <template v-for="item in testData">
+                <div :key="item.bk_code">
+                  <el-link target="_blank" @click="openDetail">{{
+                    item.bk_name_x
+                  }}</el-link>
+                  <span> {{ item.bk_changpercent }}</span
+                  ><br />
+                </div>
+              </template>
+            </el-table-column> -->
+            <!-- 特殊列:颜色变化  -->
+            <el-table-column
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              sortable
+              v-else-if="filedColorSelect.includes(item.prop)"
+            >
+              <template slot-scope="scope">
+                <span>
+                  {{ scope.row[item.prop] }}
+                </span>
+                <i
+                  class="el-icon-top"
+                  style="color: red"
+                  v-if="ckUpIconShow.includes(scope.row.Id)"
+                />
+                <i
+                  class="el-icon-bottom"
+                  style="color: green"
+                  v-else-if="ckDownIconShow.includes(scope.row.Id)"
+                />
+              </template>
+            </el-table-column>
+            <!-- 普通数据循环 -->
+            <el-table-column
+              sortable
+              :key="index"
+              :prop="item.prop"
+              :label="item.filedname"
+              v-else
+            ></el-table-column>
+          </template>
+        </el-table>
+      </div>
     </div>
     <el-dialog title="标题" :visible.sync="detailVisible"> test </el-dialog>
   </div>
@@ -610,6 +641,7 @@ export default {
         setTimeout(fun(), 0);
       }, dely);
     },
+    // 滚动条样式
     enter(id) {
       this.$(id).addClass("scrollbarShow");
     },
@@ -720,11 +752,13 @@ export default {
   // /deep/.el-table__body-wrapper::-webkit-scrollbar {
   //   width: 0;
   // }
+
   .commonScrollbarTable /deep/ .el-table__body-wrapper::-webkit-scrollbar {
     width: 6px;
     height: 10px;
     display: none;
   }
+
   //滚动条的滑块
   .commonScrollbarTable
     /deep/
