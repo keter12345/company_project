@@ -133,6 +133,7 @@
         @cell-mouse-leave="leave('#zbTable')"
         class="commonScrollbarTable"
       >
+        <!-- id字段 -->
         <template v-for="(item, index) in filedTable">
           <el-table-column
             :key="index"
@@ -146,6 +147,23 @@
               }}</el-link>
             </template>
           </el-table-column>
+          <!-- 概念详情字段 -->
+          <!-- <el-table-column
+            :key="index"
+            :prop="item.prop"
+            :label="item.filedname"
+            v-if="item.prop == 'detail'"
+          >
+            <template v-for="item in testData">
+              <div :key="item.bk_code">
+                <el-link target="_blank" @click="openDetail">{{
+                  item.bk_name_x
+                }}</el-link>
+                <span> {{ item.bk_changpercent }}</span
+                ><br />
+              </div>
+            </template>
+          </el-table-column> -->
           <!-- 特殊列:颜色变化  -->
           <el-table-column
             :key="index"
@@ -179,17 +197,6 @@
             v-else
           ></el-table-column>
         </template>
-        <el-table-column label="test">
-          <template v-for="item in testData">
-            <div :key="item.bk_code">
-              <el-link target="_blank" @click="openDetail">{{
-                item.bk_name_x
-              }}</el-link>
-              <span> {{ item.bk_changpercent }}</span
-              ><br />
-            </div>
-          </template>
-        </el-table-column>
       </el-table>
       <el-table
         id="ckTable"
@@ -236,17 +243,6 @@
             v-else
           ></el-table-column>
         </template>
-        <el-table-column label="test">
-          <template v-for="item in testData">
-            <div :key="item.bk_code">
-              <el-link target="_blank" @click="openDetail">{{
-                item.bk_name_x
-              }}</el-link>
-              <span> {{ item.bk_changpercent }}</span
-              ><br />
-            </div>
-          </template>
-        </el-table-column>
       </el-table>
     </div>
     <el-dialog title="标题" :visible.sync="detailVisible"> test </el-dialog>
@@ -287,21 +283,21 @@ export default {
       searchTableSelect: "zb", //选择需要搜索的表
       timer: null, //每5秒执行一次的计时器
       testData: [
-        {
-          bk_code: "308855",
-          bk_name_x: "跨境支付（CIPS）",
-          bk_changpercent: 2.6936170251,
-        },
-        {
-          bk_code: "301715",
-          bk_name_x: "证金持股",
-          bk_changpercent: 0.5913278038,
-        },
-        {
-          bk_code: "300900",
-          bk_name_x: "融资融券",
-          bk_changpercent: 0.5913278038,
-        },
+        // {
+        //   bk_code: "308855",
+        //   bk_name_x: "跨境支付（CIPS）",
+        //   bk_changpercent: 2.6936170251,
+        // },
+        // {
+        //   bk_code: "301715",
+        //   bk_name_x: "证金持股",
+        //   bk_changpercent: 0.5913278038,
+        // },
+        // {
+        //   bk_code: "300900",
+        //   bk_name_x: "融资融券",
+        //   bk_changpercent: 0.5913278038,
+        // },
       ],
       detailVisible: false, //板块详情展示页面
     };
@@ -630,12 +626,12 @@ export default {
   async created() {
     // 每次创建页面自动获取数据
     await this.getFileInfo();
-
-    this.setTimer(this.getAllStock, 5000);
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {},
+  mounted() {
+    this.setTimer(this.getAllStock, 5000);
+  },
   beforeUpdate() {},
   updated() {},
   beforeDestroy() {
