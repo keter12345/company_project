@@ -2,9 +2,10 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Industry from '../views/front/Industry.vue'
 import Stock from '../views/front/Stock.vue'
-import Front from '../views/index'
+import Index from '../views/index'
 import Filed from '../views/admin/filed'
 import Concept from '../views/front/Concept'
+import History from '../views/front/History'
 Vue.use(VueRouter)
 
 const routes = [
@@ -16,7 +17,7 @@ const routes = [
 
   {
     path: "/path",
-    component: Front,
+    component: Index,
     children: [
       {
         path: '/industry',
@@ -38,7 +39,13 @@ const routes = [
           title: '概念详情'
         }
       },
-
+      {
+        path: '/history',
+        component: History,
+        meta: {
+          title: '历史数据'
+        }
+      },
 
       {
         path: '/filed',

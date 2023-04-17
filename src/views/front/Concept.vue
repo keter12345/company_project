@@ -50,6 +50,20 @@
               ></el-table-column>
               <el-table-column prop="ts_name" label="股票名称">
               </el-table-column>
+              <el-table-column prop="rd_datetime" label="返回时间">
+              </el-table-column>
+              <el-table-column prop="latest_price" label="最新价（元）">
+              </el-table-column>
+              <el-table-column sortable prop="changpercent" label="涨跌幅 %">
+              </el-table-column>
+              <el-table-column prop="tradingamount" label="成交额(元)">
+              </el-table-column>
+              <el-table-column prop="swing" label="振幅  %"> </el-table-column>
+              <el-table-column prop="turnoverrate" label="换手率 %">
+              </el-table-column>
+              <el-table-column sortable prop="zsz" label="总市值">
+              </el-table-column>
+              <el-table-column prop="ltsz" label="流通市值"> </el-table-column>
               <el-table-column
                 prop="status"
                 label="状态"
@@ -126,6 +140,12 @@
         prop="bk_code"
         label="概念代码"
         width="180"
+      ></el-table-column>
+      <el-table-column sortable prop="bk_zcjl" label="成交量"></el-table-column>
+      <el-table-column
+        sortable
+        prop="bk_changpercent"
+        label="涨跌幅"
       ></el-table-column>
       <el-table-column label="备注"> </el-table-column>
       <el-table-column

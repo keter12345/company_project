@@ -159,23 +159,23 @@
                   </template>
                 </el-table-column>
                 <!-- 概念详情字段 -->
-                <!-- <el-table-column
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              v-else-if="item.prop == 'detail'"
-              fixed="right"
-            >
-              <template v-for="item in testData">
-                <div :key="item.bk_code">
-                  <el-link target="_blank" @click="openDetail">{{
-                    item.bk_name_x
-                  }}</el-link>
-                  <span> {{ item.bk_changpercent }}</span
-                  ><br />
-                </div>
-              </template>
-            </el-table-column> -->
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-else-if="item.prop == 'detail'"
+                  fixed="right"
+                >
+                  <template v-for="item in testData">
+                    <div :key="item.bk_code">
+                      <el-link target="_blank" @click="openDetail">{{
+                        item.bk_name_x
+                      }}</el-link>
+                      <span> {{ item.bk_changpercent }}</span
+                      ><br />
+                    </div>
+                  </template>
+                </el-table-column>
                 <!-- 特殊列:颜色变化  -->
                 <el-table-column
                   :key="index"
@@ -244,23 +244,24 @@
                   </template>
                 </el-table-column>
                 <!-- 概念详情字段 -->
-                <!-- <el-table-column
-              :key="index"
-              :prop="item.prop"
-              :label="item.filedname"
-              v-else-if="item.prop == 'detail'"
-              fixed="right"
-            >
-              <template v-for="item in testData">
-                <div :key="item.bk_code">
-                  <el-link target="_blank" @click="openDetail">{{
-                    item.bk_name_x
-                  }}</el-link>
-                  <span> {{ item.bk_changpercent }}</span
-                  ><br />
-                </div>
-              </template>
-            </el-table-column> -->
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-else-if="item.prop == 'detail'"
+                  fixed="right"
+                  class="detail"
+                >
+                  <template v-for="item in testData">
+                    <div :key="item.bk_code">
+                      <el-link target="_blank" @click="openDetail">{{
+                        item.bk_name_x
+                      }}</el-link>
+                      <span> {{ item.bk_changpercent }}</span
+                      ><br />
+                    </div>
+                  </template>
+                </el-table-column>
                 <!-- 特殊列:颜色变化  -->
                 <el-table-column
                   :key="index"
@@ -336,27 +337,22 @@ export default {
       ckDownIconShow: [], //绿↓显示字段id合集
       stockSearchShow: false, //数据搜索框是否展示
       filedColorSelect: [], //红绿效果切换字段值合集
-      filedSortSelect: [], //需要排序字段值合集
+      filedZYCD2: [],
       searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
       searchVal: [], //最终搜索值
       searchTableSelect: "zb", //选择需要搜索的表
       timer: null, //每5秒执行一次的计时器
       testData: [
-        // {
-        //   bk_code: "308855",
-        //   bk_name_x: "跨境支付（CIPS）",
-        //   bk_changpercent: 2.6936170251,
-        // },
-        // {
-        //   bk_code: "301715",
-        //   bk_name_x: "证金持股",
-        //   bk_changpercent: 0.5913278038,
-        // },
-        // {
-        //   bk_code: "300900",
-        //   bk_name_x: "融资融券",
-        //   bk_changpercent: 0.5913278038,
-        // },
+        {
+          bk_code: "308855",
+          bk_name_x: "跨境支付（CIPS）",
+          bk_changpercent: 2.69,
+        },
+        {
+          bk_code: "301715",
+          bk_name_x: "证金持股",
+          bk_changpercent: 0.59,
+        },
       ],
       zbHeight: "100%", //zb表高度
       ckHeight: "100%", //ck表高度
@@ -508,11 +504,12 @@ export default {
         this.ckStockInfo = res;
       });
     },
-    // 根据数据，改变单元格颜色 大于0红色，小于0绿色
+    // 根据数据，改变单元格颜色
     returnStyle(obj) {
       let filed = this.filedInfo.filter((item) => {
         return item.prop === obj.column.property;
       });
+      //  大于chengdu值红色
       if (
         this.filedColorSelect.includes(obj.column.property) &&
         eval(`parseFloat(obj.row.${obj.column.property})`) >
@@ -522,6 +519,7 @@ export default {
           color: "red",
         };
       }
+      // 小于chengdu值绿色
       if (
         this.filedColorSelect.includes(obj.column.property) &&
         eval(`parseFloat(obj.row.${obj.column.property})`) <
@@ -531,10 +529,39 @@ export default {
           color: "green",
         };
       }
+      // 特殊颜色变化
+      this.filedZYCD2.forEach((item) => {
+        // console.log(item);
+        if (
+          item.cz_ziduan == obj.column.property &&
+          eval(`parseFloat(obj.row.${item.prop})`) > 8
+        ) {
+          return {
+            color: "red",
+          };
+        } else if (
+          item.cz_ziduan == obj.column.property &&
+          eval(`parseFloat(obj.row.${item.prop})`) > 6
+        ) {
+          return {
+            color: "yellow",
+          };
+        } else if (
+          item.cz_ziduan == obj.column.property &&
+          eval(`parseFloat(obj.row.${item.prop})`) > 3
+        ) {
+          return {
+            color: "blue",
+          };
+        }
+      });
     },
     // 获取所有字段相关数据
     async getFileInfo() {
       this.filedInfo = await getFileInfoAPI();
+      this.filedInfo = this.filedInfo.filter((data) => {
+        return data.tablename == "stock_show";
+      });
       // 获取已选显示字段
       this.filedChecked = this.filedInfo.filter((data) => {
         return data.is_show === 1;
@@ -543,14 +570,19 @@ export default {
       this.filedTable = this.filedInfo.filter((data) => {
         return data.is_show === 1;
       });
-      // 获取需要颜色变化字段
+
       this.filedTable.forEach((data) => {
+        // 获取需要颜色变化字段
         if (data.is_czzd == 1) {
           this.filedColorSelect.push(data.prop);
-          // testtest
-          this.filedSortSelect.push(data.prop);
         }
       });
+      console.log(this.filedInfo);
+      //获取需要特殊颜色变化的字段
+      this.filedZYCD2 = this.filedInfo.filter((data) => {
+        return data.is_show == 0 && data.is_czzd == 2 && data.cz_ziduan != null;
+      });
+      console.log(this.filedZYCD2);
     },
 
     // **抽屉模块功能**
@@ -815,6 +847,9 @@ export default {
   }
   .scrollbarShow /deep/ .el-table__body-wrapper::-webkit-scrollbar {
     display: block;
+  }
+  .detail {
+    font-size: 10px;
   }
 }
 </style>

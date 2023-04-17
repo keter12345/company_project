@@ -38,6 +38,10 @@
                   <i class="el-icon-s-data"></i>
                   <span slot="title">数据展示</span>
                 </el-menu-item>
+                <el-menu-item index="/history">
+                  <i class="el-icon-time"></i>
+                  <span slot="title">历史数据</span>
+                </el-menu-item>
               </el-menu-item-group>
             </el-submenu>
 

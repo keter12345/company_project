@@ -1,6 +1,7 @@
 import { getAllBGList, updateBGLevel, updateItemStatus } from './industry'
 import { getFileInfo, updateFilInfo, getZbStockInfo, getCkStockInfo } from './stock'
 import { getAllBKGNInfo, updateGNLevel, updateGNItemStatus } from "./concept"
+import { getHistory } from "./history"
 export const getAllBGListAPI = getAllBGList
 
 export const updateBGLevelAPI = updateBGLevel
@@ -19,3 +20,5 @@ export const getAllBKGNInfoAPI = getAllBKGNInfo
 
 export const updateGNLevelAPI = updateGNLevel
 export const updateGNItemStatusAPI = updateGNItemStatus
+
+export const getHistoryAPI = getHistory
