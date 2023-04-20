@@ -2,73 +2,84 @@
   <div class="">
     <!-- 滑动搜索框 -->
     <div class="search">
+      <div class="time_input">
+        <span style="color: #909399">刷新时间：</span>
+        <el-input-number
+          style="width: 100px"
+          v-model="refreshTime"
+          controls-position="right"
+          @change="timeChange"
+          :min="1"
+          size="medium"
+        ></el-input-number>
+      </div>
+
       <div class="search-right">
         <i
           class="el-icon-search icon"
           @click="stockSearchShow = !stockSearchShow"
           title="搜索"
         ></i>
+
         <i class="el-icon-setting icon" @click="open()" title="设置"></i>
       </div>
-
-      <div>
-        <transition name="el-zoom-in-top">
-          <el-card class="box-card" v-show="stockSearchShow">
-            <div slot="header" class="clearfix">
-              <span>
-                搜索表:
-                <el-radio-group v-model="searchTableSelect">
-                  <el-radio-button label="zb"></el-radio-button>
-                  <el-radio-button
-                    label="ck"
-                  ></el-radio-button> </el-radio-group
-              ></span>
-              <span style="float: right">
-                <i
-                  class="el-icon-delete icon"
-                  title="清空条件"
-                  @click="clareStockSearch"
-                ></i>
-                <i
-                  class="el-icon-plus icon"
-                  @click="addStockSearch"
-                  title="添加条件"
-                ></i>
-                <i
-                  class="el-icon-check icon"
-                  @click="checkedStockSearch"
-                  title="搜索"
-                ></i
-              ></span>
-            </div>
-            <div
-              v-for="(item, index) in searchForm"
-              :key="index"
-              class="card_item"
-            >
-              <el-input
-                placeholder="请输入内容"
-                v-model="item.stockSearchVal"
-                size="medium"
-              >
-                <el-select
-                  v-model="item.stockSearchSelect"
-                  slot="prepend"
-                  placeholder="请选择"
-                >
-                  <el-option
-                    v-for="item in filedTable"
-                    :key="item.id"
-                    :label="item.filedname"
-                    :value="item.prop"
-                  ></el-option>
-                </el-select>
-              </el-input>
-            </div>
-          </el-card>
-        </transition>
-      </div>
     </div>
+    <div>
+      <transition name="el-zoom-in-top">
+        <el-card class="box-card" v-show="stockSearchShow">
+          <div slot="header" class="clearfix">
+            <span>
+              搜索表:
+              <el-radio-group v-model="searchTableSelect">
+                <el-radio-button label="zb"></el-radio-button>
+                <el-radio-button label="ck"></el-radio-button> </el-radio-group
+            ></span>
+            <span style="float: right">
+              <i
+                class="el-icon-delete icon"
+                title="清空条件"
+                @click="clareStockSearch"
+              ></i>
+              <i
+                class="el-icon-plus icon"
+                @click="addStockSearch"
+                title="添加条件"
+              ></i>
+              <i
+                class="el-icon-check icon"
+                @click="checkedStockSearch"
+                title="搜索"
+              ></i
+            ></span>
+          </div>
+          <div
+            v-for="(item, index) in searchForm"
+            :key="index"
+            class="card_item"
+          >
+            <el-input
+              placeholder="请输入内容"
+              v-model="item.stockSearchVal"
+              size="medium"
+            >
+              <el-select
+                v-model="item.stockSearchSelect"
+                slot="prepend"
+                placeholder="请选择"
+              >
+                <el-option
+                  v-for="item in filedTable"
+                  :key="item.id"
+                  :label="item.filedname"
+                  :value="item.prop"
+                ></el-option>
+              </el-select>
+            </el-input>
+          </div>
+        </el-card>
+      </transition>
+    </div>
+
     <!-- 字段设置抽屉，用于字段选择 -->
     <div>
       <el-drawer
@@ -320,6 +331,7 @@ export default {
   components: { Splitpanes, Pane },
   data() {
     return {
+      tablename: "stock_show",
       paneSize: 50, //上 zb表模块高度百分比
       zbStockInfo: null, //所有zb表股票数据
       ckStockInfo: null,
@@ -342,6 +354,7 @@ export default {
       searchVal: [], //最终搜索值
       searchTableSelect: "zb", //选择需要搜索的表
       timer: null, //每5秒执行一次的计时器
+      refreshTime: 5, //刷新时间 默认五秒
       testData: [
         {
           bk_code: "308855",
@@ -383,6 +396,7 @@ export default {
         }
       },
     },
+
     // 监听股票数据，根据新旧数据实现表格箭头显示
     zbData: {
       handler(newVal, oldVal) {
@@ -453,7 +467,7 @@ export default {
   methods: {
     // 获取所有股票信息  接口待完善 计时器每五秒刷新一次功能
     getAllStock() {
-      getZbStockInfoAPI().then((data) => {
+      getZbStockInfoAPI(this.tablename).then((data) => {
         let res = this.stockInfoFormat(JSON.parse(data));
         // 搜索功能
         if (this.searchVal != "" && this.searchTableSelect == "zb") {
@@ -478,7 +492,7 @@ export default {
         }
         this.zbStockInfo = res;
       });
-      getCkStockInfoAPI().then((data) => {
+      getCkStockInfoAPI(this.tablename).then((data) => {
         let res = this.stockInfoFormat(JSON.parse(data));
         // 搜索功能
         if (this.searchVal != "" && this.searchTableSelect == "ck") {
@@ -560,7 +574,7 @@ export default {
     async getFileInfo() {
       this.filedInfo = await getFileInfoAPI();
       this.filedInfo = this.filedInfo.filter((data) => {
-        return data.tablename == "stock_show";
+        return data.tablename == this.tablename;
       });
       // 获取已选显示字段
       this.filedChecked = this.filedInfo.filter((data) => {
@@ -582,7 +596,7 @@ export default {
       this.filedZYCD2 = this.filedInfo.filter((data) => {
         return data.is_show == 0 && data.is_czzd == 2 && data.cz_ziduan != null;
       });
-      console.log(this.filedZYCD2);
+      // console.log(this.filedZYCD2);
     },
 
     // **抽屉模块功能**
@@ -675,7 +689,7 @@ export default {
     clareStockSearch() {
       this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
       this.searchVal = [];
-      this.setTimer(this.getAllStock, 5000);
+      this.setTimer(this.getAllStock, this.refreshTime);
     },
     // 多条件搜索
     checkedStockSearch() {
@@ -686,7 +700,7 @@ export default {
         }
       });
       if (this.searchVal.length > 0) {
-        this.setTimer(this.getAllStock, 5000);
+        this.setTimer(this.getAllStock, this.refreshTime);
         this.stockSearchShow = false;
       } else {
         this.$message({
@@ -701,7 +715,10 @@ export default {
       fun();
       this.timer = window.setInterval(() => {
         setTimeout(fun(), 0);
-      }, dely);
+      }, dely * 1000);
+    },
+    timeChange(val) {
+      this.setTimer(this.getAllStock, val);
     },
     // 滚动条样式
     enter(id) {
@@ -731,7 +748,7 @@ export default {
   async created() {
     // 每次创建页面自动获取数据
     await this.getFileInfo();
-    this.setTimer(this.getAllStock, 5000);
+    this.setTimer(this.getAllStock, this.refreshTime);
   },
   beforeMount() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
@@ -779,12 +796,16 @@ export default {
 }
 
 .search {
+  height: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  .time_input {
+  }
+
   .search-right {
-    width: 100%;
-    text-align: right;
-
-    line-height: 40px;
-
     .icon {
       padding: 0 10px;
       font-size: 20px;
@@ -795,29 +816,30 @@ export default {
       content: attr(title);
     }
   }
-  .box-card {
-    // text-align: center;
-    // display: flex;
-    .clearfix {
-      .icon {
-        font-size: 20px;
-        padding: 5px;
-      }
-
-      .icon:hover {
-        color: #409eff;
-        content: attr(title);
-      }
+}
+.box-card {
+  // text-align: center;
+  // display: flex;
+  .clearfix {
+    .icon {
+      font-size: 20px;
+      padding: 5px;
     }
-    .card_item {
-      margin-right: 20px;
-      margin-top: 5px;
-      max-width: 500px;
-      justify-content: space-around;
-      display: inline-flex;
+
+    .icon:hover {
+      color: #409eff;
+      content: attr(title);
     }
   }
+  .card_item {
+    margin-right: 20px;
+    margin-top: 5px;
+    max-width: 500px;
+    justify-content: space-around;
+    display: inline-flex;
+  }
 }
+
 .out {
   height: calc(100vh - 140px) !important;
   // overflow: hidden;

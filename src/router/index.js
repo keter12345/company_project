@@ -6,6 +6,7 @@ import Index from '../views/index'
 import Filed from '../views/admin/filed'
 import Concept from '../views/front/Concept'
 import History from '../views/front/History'
+import StockJS from '../views/front/StockJS'
 Vue.use(VueRouter)
 
 const routes = [
@@ -42,6 +43,13 @@ const routes = [
       {
         path: '/history',
         component: History,
+        meta: {
+          title: '历史数据'
+        }
+      },
+      {
+        path: '/stockjs',
+        component: StockJS,
         meta: {
           title: '历史数据'
         }

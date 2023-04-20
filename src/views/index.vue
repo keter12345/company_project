@@ -1,12 +1,12 @@
 <template>
   <div style="height: 100%">
     <el-container>
-      <!-- <el-header>
+      <el-header>
         <el-menu class="el-menu-demo" mode="horizontal">
           <el-menu-item index="1">首页</el-menu-item>
           <el-menu-item index="2">消息中心</el-menu-item>
         </el-menu>
-      </el-header> -->
+      </el-header>
       <el-container>
         <el-aside :width="isCollapse ? '65px' : '200px'">
           <el-menu
@@ -41,6 +41,10 @@
                 <el-menu-item index="/history">
                   <i class="el-icon-time"></i>
                   <span slot="title">历史数据</span>
+                </el-menu-item>
+                <el-menu-item index="/stockjs">
+                  <i class="el-icon-time"></i>
+                  <span slot="title">历史JS</span>
                 </el-menu-item>
               </el-menu-item-group>
             </el-submenu>
