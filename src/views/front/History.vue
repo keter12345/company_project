@@ -371,38 +371,34 @@ export default {
   methods: {
     // 获取表数据
     async getHistory() {
-      // let res = await getHistoryAPI(
-      //   this.datetime,
-      //   this.countnum,
-      //   this.tablename
-      // );
-      // this.historyInfo = JSON.parse(res);
+      let res = await getHistoryAPI(this.datetime, this.countnum);
+      this.historyInfo = JSON.parse(res);
       // 测试用 后续删 改为history接口
-      getZbStockInfoAPI(this.tablename).then((data) => {
-        let res = this.stockInfoFormat(JSON.parse(data));
-        // 搜索功能
-        if (this.searchVal != []) {
-          this.searchVal.forEach((val) => {
-            res = res.filter((data) => {
-              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
-                data = eval(`data.${val.stockSearchSelect}.toString()`);
-                return (
-                  data.substr(0, val.stockSearchVal.length) ==
-                  val.stockSearchVal
-                );
-              } else {
-                return (
-                  !val ||
-                  eval(
-                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
-                  )
-                );
-              }
-            });
-          });
-        }
-        this.historyInfo = res;
-      });
+      // getZbStockInfoAPI(this.tablename).then((data) => {
+      //   let res = this.stockInfoFormat(JSON.parse(data));
+      //   // 搜索功能
+      //   if (this.searchVal != []) {
+      //     this.searchVal.forEach((val) => {
+      //       res = res.filter((data) => {
+      //         if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
+      //           data = eval(`data.${val.stockSearchSelect}.toString()`);
+      //           return (
+      //             data.substr(0, val.stockSearchVal.length) ==
+      //             val.stockSearchVal
+      //           );
+      //         } else {
+      //           return (
+      //             !val ||
+      //             eval(
+      //               `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+      //             )
+      //           );
+      //         }
+      //       });
+      //     });
+      //   }
+      //   this.historyInfo = res;
+      // });
     },
     // 股票数值格式化保留两位小数 时间显示时刻部分
     stockInfoFormat(info) {
@@ -443,9 +439,11 @@ export default {
     // 获取所有字段相关数据
     async getFileInfo() {
       this.filedInfo = await getFileInfoAPI();
+      console.log(this.filedInfo);
       this.filedInfo = this.filedInfo.filter((data) => {
         return data.tablename == this.tablename;
       });
+      console.log(this.filedInfo);
       // 获取已选显示字段
       this.filedChecked = this.filedInfo.filter((data) => {
         return data.is_show === 1;
@@ -621,7 +619,6 @@ export default {
     let data = new Date();
     this.datetime =
       data.getFullYear() + "-" + (data.getMonth() + 1) + "-" + data.getDate();
-
     await this.getHistory();
   },
   beforeMount() {},
