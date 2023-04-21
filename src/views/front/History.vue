@@ -256,7 +256,7 @@
 </template>
 
 <script>
-import { getHistoryAPI, getFileInfoAPI, getZbStockInfoAPI } from "@/api/index";
+import { getHistoryAPI, getFileInfoAPI } from "@/api/index";
 export default {
   components: {},
   data() {
@@ -334,6 +334,18 @@ export default {
     },
   },
   watch: {
+    // 监听字段搜索数据
+    filedSearchVal: {
+      handler(newVal, oldVal) {
+        if (newVal != "") {
+          this.filedInfo = this.filedInfo.filter((data) => {
+            return data.filedname.includes(newVal);
+          });
+        } else {
+          this.getFileInfo();
+        }
+      },
+    },
     // 监听股票数据，根据新旧数据实现表格箭头显示
     historyData: {
       handler(newVal, oldVal) {
@@ -350,13 +362,13 @@ export default {
                     `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
                   )
                 ) {
-                  this.zbUpIconShow.push(item.Id);
+                  this.UpIconShow.push(item.Id);
                 } else if (
                   eval(
                     `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
                   )
                 ) {
-                  this.zbDownIconShow.push(item.Id);
+                  this.DownIconShow.push(item.Id);
                 }
               });
             }
