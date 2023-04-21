@@ -383,34 +383,33 @@ export default {
   methods: {
     // 获取表数据
     async getHistory() {
-      let res = await getHistoryAPI(this.datetime, this.countnum);
-      this.historyInfo = JSON.parse(res);
-      // 测试用 后续删 改为history接口
-      // getZbStockInfoAPI(this.tablename).then((data) => {
-      //   let res = this.stockInfoFormat(JSON.parse(data));
-      //   // 搜索功能
-      //   if (this.searchVal != []) {
-      //     this.searchVal.forEach((val) => {
-      //       res = res.filter((data) => {
-      //         if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
-      //           data = eval(`data.${val.stockSearchSelect}.toString()`);
-      //           return (
-      //             data.substr(0, val.stockSearchVal.length) ==
-      //             val.stockSearchVal
-      //           );
-      //         } else {
-      //           return (
-      //             !val ||
-      //             eval(
-      //               `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
-      //             )
-      //           );
-      //         }
-      //       });
-      //     });
-      //   }
-      //   this.historyInfo = res;
-      // });
+      // let res = await getHistoryAPI(this.datetime, this.countnum);
+      // this.historyInfo = this.stockInfoFormat(JSON.parse(res));
+      await getHistoryAPI(this.datetime, this.countnum).then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        // 搜索功能
+        if (this.searchVal != []) {
+          this.searchVal.forEach((val) => {
+            res = res.filter((data) => {
+              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
+                data = eval(`data.${val.stockSearchSelect}.toString()`);
+                return (
+                  data.substr(0, val.stockSearchVal.length) ==
+                  val.stockSearchVal
+                );
+              } else {
+                return (
+                  !val ||
+                  eval(
+                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                  )
+                );
+              }
+            });
+          });
+        }
+        this.historyInfo = res;
+      });
     },
     // 股票数值格式化保留两位小数 时间显示时刻部分
     stockInfoFormat(info) {
@@ -540,7 +539,7 @@ export default {
       this.getHistory();
     },
     // *******多条件搜索
-    checkedStockSearch() {
+    async checkedStockSearch() {
       this.searchVal = [];
       this.searchForm.forEach((val) => {
         if (val.stockSearchVal != "" && val.stockSearchSelect != "") {
@@ -551,7 +550,7 @@ export default {
         if (this.isStartTimer == true) {
           this.setTimer(this.getHistory(), this.refreshTime);
         } else {
-          this.getHistory();
+          await this.getHistory();
         }
 
         this.stockSearchShow = false;
