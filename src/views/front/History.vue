@@ -305,6 +305,7 @@ export default {
       checkAll: false, //字段是否全选
       filedSearchVal: "", //字段搜索值
       filedColorSelect: [], //红绿效果切换字段值合集
+      optionFiledSelect: [], //搜索页面可选搜索条件
       UpIconShow: [],
       DownIconShow: [],
       filedZYCD2: [],
@@ -463,6 +464,10 @@ export default {
       this.filedTable = this.filedInfo.filter((data) => {
         return data.is_show === 1;
       });
+      //搜索框搜索条件
+      this.optionFiledSelect = this.filedTable.filter((data) => {
+        return is_select == 1;
+      });
 
       this.filedTable.forEach((data) => {
         // 获取需要颜色变化字段
@@ -523,7 +528,10 @@ export default {
     // ******表数据搜索模块
     // 添加搜索条件
     addStockSearch() {
-      if (this.searchForm.length == this.filedTable.length) {
+      if (
+        this.optionFiledSelect.length <= 0 ||
+        this.searchForm.length == this.optionFiledSelect.length
+      ) {
         this.$message({
           message: "搜索条件上限！",
           type: "warning",

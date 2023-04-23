@@ -139,7 +139,6 @@
         class="default-theme"
       >
         <pane :size="paneSize">
-          <!-- <template slot="paneL"> -->
           <div
             class="zbPane"
             ref="zbPane"
@@ -223,8 +222,6 @@
             </el-table>
           </div>
         </pane>
-        <!-- </template> -->
-        <!-- <template slot="paneR"> -->
         <pane :size="100 - paneSize">
           <div
             class="ckPane"
