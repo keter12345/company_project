@@ -451,7 +451,7 @@ export default {
     // 获取所有字段相关数据
     async getFileInfo() {
       this.filedInfo = await getFileInfoAPI();
-      console.log(this.filedInfo);
+      // console.log(this.filedInfo);
       this.filedInfo = this.filedInfo.filter((data) => {
         return data.tablename == this.tablename;
       });

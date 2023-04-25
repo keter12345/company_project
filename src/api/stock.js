@@ -1,8 +1,8 @@
 // 测试接口封装
 import request from "../utils/request";
-export const getFileInfo = () => request({
+export const getFileInfo = (tablename) => request({
     method: "GET",
-    url: "getSysShow/"
+    url: `getSysShow?tablename=${tablename}`
 })
 
 export const updateFilInfo = (ids) => request({
