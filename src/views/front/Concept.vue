@@ -1,5 +1,7 @@
 <template >
   <div class="body">
+    <!-- 头部搜索框 -->
+    <div></div>
     <!-- 表格部分 -->
     <el-table
       :data="searchVal != '' ? searchInfo : ConceptInfo"
@@ -160,12 +162,12 @@
         :filter-method="zycdFilterTag"
         filter-placement="bottom-end"
       ></el-table-column>
-      <el-table-column align="right">
-        <template slot="header" slot-scope="scope">
+      <el-table-column label="操作">
+        <!-- <template slot="header" slot-scope="scope">
           <div>
-            、
-            <!-- 搜索框 -->
-            <template>
+            、 -->
+        <!-- 搜索框 -->
+        <!-- <template>
               <el-input
                 placeholder="请输入搜索内容"
                 v-model="searchVal"
@@ -184,9 +186,9 @@
                   ></el-option>
                 </el-select>
               </el-input>
-            </template>
-          </div>
-        </template>
+            </template> -->
+        <!-- </div>
+        </template> -->
         <template slot-scope="scope">
           <el-button
             size="mini"

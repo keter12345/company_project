@@ -569,7 +569,7 @@ export default {
     },
     // 获取所有字段相关数据
     async getFileInfo() {
-      this.filedInfo = await getFileInfoAPI();
+      this.filedInfo = await getFileInfoAPI(this.tablename);
       this.filedInfo = this.filedInfo.filter((data) => {
         return data.tablename == this.tablename;
       });
@@ -608,7 +608,7 @@ export default {
         }
       });
     },
-    // 多选框选择功能-绑定方法
+    // 抽屉多选框选择功能-绑定方法
     handleSelectionChange(val) {
       this.filedChecked = val;
     },

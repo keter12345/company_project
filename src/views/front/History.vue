@@ -450,11 +450,8 @@ export default {
     // *******字段相关处理*******
     // 获取所有字段相关数据
     async getFileInfo() {
-      this.filedInfo = await getFileInfoAPI();
+      this.filedInfo = await getFileInfoAPI(this.tablename);
       // console.log(this.filedInfo);
-      this.filedInfo = this.filedInfo.filter((data) => {
-        return data.tablename == this.tablename;
-      });
       console.log(this.filedInfo);
       // 获取已选显示字段
       this.filedChecked = this.filedInfo.filter((data) => {
