@@ -2,7 +2,7 @@
 import request from "../utils/request";
 export const getFileInfo = (tablename) => request({
     method: "GET",
-    url: `getSysShow?tablename=${tablename}`
+    url: `getSysShow/?tablename=${tablename}`
 })
 
 export const updateFilInfo = (ids) => request({
