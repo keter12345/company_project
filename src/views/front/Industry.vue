@@ -124,11 +124,7 @@
 
     <!-- 表格部分 -->
 
-    <el-table
-      :data="searchVal != '' ? searchInfo : IndustryInfo"
-      stripe
-      style="width: 100%"
-    >
+    <el-table :data="IndustryInfo" stripe style="width: 100%">
       <!-- 子模块 -->
       <el-table-column type="expand">
         <template slot-scope="props">
@@ -167,40 +163,39 @@
               @selection-change="StockSelectionChange"
             >
               <el-table-column type="selection" width="45"> </el-table-column>
-              <el-table-column
-                prop="ts_code"
-                label="股票代码"
-              ></el-table-column>
-              <el-table-column prop="ts_name" label="股票名称">
-              </el-table-column>
-              <el-table-column prop="rd_datetime" label="返回时间">
-              </el-table-column>
-              <el-table-column prop="latest_price" label="最新价（元）">
-              </el-table-column>
-              <el-table-column sortable prop="changpercent" label="涨跌幅 %">
-              </el-table-column>
-              <el-table-column prop="tradingamount" label="成交额(元)">
-              </el-table-column>
-              <el-table-column prop="swing" label="振幅  %"> </el-table-column>
-              <el-table-column prop="turnoverrate" label="换手率 %">
-              </el-table-column>
-              <el-table-column sortable prop="zsz" label="总市值">
-              </el-table-column>
-              <el-table-column prop="ltsz" label="流通市值"> </el-table-column>
-              <el-table-column
-                prop="status"
-                label="状态"
-                :formatter="statusTag"
-                :filters="[
-                  { text: '普通', value: 0 },
-                  { text: '重要', value: 1 },
-                  { text: '龙头', value: 2 },
-                ]"
-                :filter-method="statusFilterTag"
-                filter-placement="bottom-end"
-              >
-              </el-table-column>
-              <el-table-column align="right">
+
+              <template v-for="(item, index) in sotckTableFiled">
+                <el-table-column
+                  sortable
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-if="item.prop == 'changpercent' || item.prop == 'zsz'"
+                ></el-table-column>
+                <el-table-column
+                  sortable
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  :formatter="statusTag"
+                  :filters="[
+                    { text: '普通', value: 0 },
+                    { text: '重要', value: 1 },
+                    { text: '龙头', value: 2 },
+                  ]"
+                  :filter-method="statusFilterTag"
+                  filter-placement="bottom-end"
+                  v-else-if="item.prop == 'status'"
+                >
+                </el-table-column>
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-else
+                ></el-table-column>
+              </template>
+              <el-table-column align="right" label="操作">
                 <template slot-scope="scope">
                   <el-button
                     type="primary"
@@ -252,14 +247,58 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="行业名称" width="180">
+      <template v-for="(item, index) in industryTableFiled">
+        <el-table-column
+          sortable
+          :key="index"
+          :label="item.filedname"
+          v-if="item.prop == 'bk_name'"
+        >
+          <template slot-scope="scope">
+            <el-link :href="scope.row.bk_www" target="_blank">{{
+              scope.row.bk_name
+            }}</el-link>
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          sortable
+          :key="index"
+          :prop="item.prop"
+          :label="item.filedname"
+          v-else-if="item.prop == 'bk_zcjl' || item.prop == 'bk_changpercent'"
+        ></el-table-column>
+        <el-table-column
+          sortable
+          :key="index"
+          :prop="item.prop"
+          :label="item.filedname"
+          :formatter="zycdTag"
+          :filters="[
+            { text: '正常', value: '0' },
+            { text: '热点', value: '1' },
+            { text: '重要热点', value: '2' },
+          ]"
+          :filter-method="zycdFilterTag"
+          filter-placement="bottom-end"
+          v-else-if="item.prop == 'zycd'"
+        >
+        </el-table-column>
+        <el-table-column
+          :key="index"
+          :prop="item.prop"
+          :label="item.filedname"
+          v-else
+        ></el-table-column>
+      </template>
+      <!-- <el-table-column label="行业名称" width="180">
         <template slot-scope="scope">
           <el-link :href="scope.row.bk_www" target="_blank">{{
             scope.row.bk_name
           }}</el-link>
         </template></el-table-column
-      >
-      <el-table-column prop="bk_code" label="行业代码"></el-table-column>
+      > -->
+      <!-- <el-table-column prop="bk_code" label="行业代码"></el-table-column>
 
       <el-table-column sortable prop="bk_zcjl" label="成交量"></el-table-column>
       <el-table-column
@@ -267,8 +306,8 @@
         prop="bk_changpercent"
         label="涨跌幅"
       ></el-table-column>
-      <el-table-column label="备注"> </el-table-column>
-      <el-table-column
+      <el-table-column label="备注"> </el-table-column> -->
+      <!-- <el-table-column
         prop="zycd"
         label="重要程度"
         :formatter="zycdTag"
@@ -279,35 +318,8 @@
         ]"
         :filter-method="zycdFilterTag"
         filter-placement="bottom-end"
-      ></el-table-column>
+      ></el-table-column> -->
       <el-table-column label="操作">
-        <!-- <template slot="header" slot-scope="scope">
-          <div> -->
-        、
-        <!-- 搜索框 -->
-        <!-- <template>
-              <el-input
-                placeholder="请输入搜索内容"
-                v-model="searchVal"
-                class="input-with-select"
-              >
-                <el-select
-                  style="width: 70px"
-                  v-model="searchSelect"
-                  slot="prepend"
-                  placeholder="请选择"
-                >
-                  <el-option
-                    v-for="item in options"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  ></el-option>
-                </el-select>
-              </el-input>
-            </template> -->
-        <!-- </div>
-        </template> -->
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -350,8 +362,13 @@ export default {
       filedInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
+      sotckFiledInfo: [
+        //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
+      ],
+      industryFiledInfo: [
+        //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
+      ],
       filedChecked: [], //已选择的字段
-      filedTable: [], //显示在表上的字段
       filedSearchVal: "", //字段搜索值
       checkAll: false, //字段是否全选
       sotckTableFiled: [], //股票子模块显示的字段
@@ -385,67 +402,81 @@ export default {
     // 搜索模块改变，需要搜索的字段也改变
     searchSelect: {
       handler(newVal, oldVal) {
-        if (newVal == "行业") {
-          this.selecFiledChose(this.industryTableFiled);
-        } else if (newVal == "股票") {
-          this.selecFiledChose(this.sotckTableFiled);
-        }
+        this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
+        this.searchVal = [];
+        this.selecFiledChose();
       },
     },
   },
 
   methods: {
-    // 方法：搜索功能，info：搜索对象
-    Search(info) {
-      if (this.searchSelect == "行业") {
-        // 搜索选项为'行业'进行搜索
-        this.searchVal.forEach((val) => {
-          info = info.filter((data) => {
-            if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
-              data = eval(`data.${val.stockSearchSelect}.toString()`);
-              return (
-                data.substr(0, val.stockSearchVal.length) == val.stockSearchVal
-              );
-            } else {
-              return (
-                !val ||
-                eval(
-                  `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
-                )
-              );
-            }
-          });
-        });
-      } else if (this.searchSelect == "股票") {
-        // 搜索选项为'股票'进行搜索
-        this.searchVal.forEach((val) => {
-          info.forEach((item) => {
-            item.values = item.values.filter((res) => {
-              if (typeof eval(`res.${val.stockSearchSelect}`) == "number") {
-                res = eval(`res.${val.stockSearchSelect}.toString()`);
+    // 股票数值格式化保留两位小数 时间显示时刻部分
+    stockInfoFormat(info) {
+      info.forEach((data) => {
+        for (const key in data) {
+          if (key != "Id" && typeof data[key] == "number") {
+            data[key] = Number(data[key].toFixed(2));
+          } else if (key == "rd_datetime") {
+            data[key] = data[key].substr(data[key].lastIndexOf(" "));
+          }
+        }
+      });
+      return info;
+    },
+    // 方法：获取所有行业信息
+    async getAllBG() {
+      let res = this.stockInfoFormat(JSON.parse(await getAllBGListAPI()));
+      if (this.searchVal.length > 0) {
+        if (this.searchSelect == "行业") {
+          // console.log(this.searchVal);
+          // 搜索选项为'行业'进行搜索
+          this.searchVal.forEach((val) => {
+            res = res.filter((data) => {
+              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
+                data = eval(`data.${val.stockSearchSelect}.toString()`);
                 return (
-                  res.substr(0, val.stockSearchVal.length) == val.stockSearchVal
+                  data.substr(0, val.stockSearchVal.length) ==
+                  val.stockSearchVal
                 );
               } else {
                 return (
                   !val ||
                   eval(
-                    `res.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
                   )
                 );
               }
             });
+            // console.log(res);
           });
-        });
+        } else if (this.searchSelect == "股票") {
+          // 搜索选项为'股票'进行搜索
+          this.searchVal.forEach((val) => {
+            res.forEach((item) => {
+              item.values = item.values.filter((res) => {
+                if (typeof eval(`res.${val.stockSearchSelect}`) == "number") {
+                  res = eval(`res.${val.stockSearchSelect}.toString()`);
+                  return (
+                    res.substr(0, val.stockSearchVal.length) ==
+                    val.stockSearchVal
+                  );
+                } else {
+                  return (
+                    !val ||
+                    eval(
+                      `res.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                    )
+                  );
+                }
+              });
+              res = res.filter((data) => {
+                return data.values.length > 0;
+              });
+            });
+          });
+        }
       }
-      // 返回结果
-      return info;
-    },
-    // 方法：获取所有行业信息
-    async getAllBG() {
-      let res = await getAllBGListAPI();
-      // return JSON.parse(res);
-      this.IndustryInfo = JSON.parse(res);
+      this.IndustryInfo = res;
     },
 
     // 方法：修改行业信息重要程度，bk_code, val：修改值
@@ -453,12 +484,7 @@ export default {
       let res = "";
       try {
         res = await updateBGLevelAPI(bk_code, val);
-        this.Search("行业", JSON.parse(res));
-        // 有搜索值时，展示更新后的搜索结果
-        // if (this.searchVal != "") {
-        //   this.searchInfo = this.Search(this.searchVal, this.IndustryInfo);
-        // }
-        // 更新成功提示框
+        this.getAllBG();
         this.$message({
           message: "重要程度更新成功！",
           type: "success",
@@ -480,7 +506,6 @@ export default {
         data = this.stockSelection.map((item) => {
           return item.ts_code;
         });
-        console.log(data);
         if (data.length < 1) {
           this.$message({
             message: "请选择内容",
@@ -492,18 +517,9 @@ export default {
         // 单独修改
         data.push(row.ts_code);
       }
-
       let res = await updateItemStatusAPI(bk_code, data, status);
       if (res == 1) {
-        let info = JSON.parse(await getAllBGListAPI());
-        // 有搜索值时，展示更新后的搜索结果，否则更新所有结果
-        // if (this.searchVal != "") {
-        //   info = this.Search(this.searchVal, info);
-        //   this.searchInfo[index].values = info[index].values;
-        // } else {
-        //   this.IndustryInfo[index].values = info[index].values;
-        // }
-        this.Search("股票", JSON.parse(info));
+        this.getAllBG();
         // 更新成功提示框
         this.$message({
           message: "状态更新成功！",
@@ -539,7 +555,13 @@ export default {
     },
     // 添加搜索条件
     addStockSearch() {
-      if (this.searchForm.length == this.filedTable.length) {
+      let length;
+      if (this.searchSelect == "行业") {
+        length = this.industryFiledInfo.length;
+      } else {
+        length = this.sotckFiledInfo.length;
+      }
+      if (length <= 0 || this.searchForm.length == length) {
         this.$message({
           message: "搜索条件上限！",
           type: "warning",
@@ -552,9 +574,7 @@ export default {
     async clareStockSearch() {
       this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
       this.searchVal = [];
-      // 重新查找数据
-      // let res = await this.getAllBG();
-      // this.Search(this.searchSelect, res);
+      this.getAllBG();
     },
     // 多条件搜索
     async checkedStockSearch() {
@@ -566,8 +586,7 @@ export default {
       });
       if (this.searchVal.length > 0) {
         // 进行数据查询
-        // let res = await this.getAllBG();
-        // this.Search(this.searchSelect, res);
+        this.getAllBG();
         this.stockSearchShow = false;
       } else {
         this.$message({
@@ -589,28 +608,16 @@ export default {
     },
     // *****获取需要的字段***
     async getFileInfo() {
-      this.filedInfo = await getFileInfoAPI();
-      this.filedInfo = this.filedInfo.filter((data) => {
-        return data.tablename == this.tablename;
+      this.sotckFiledInfo = await getFileInfoAPI("stock_bk_stock");
+      this.industryFiledInfo = await getFileInfoAPI("stock_bk");
+      this.filedInfo = [...this.sotckFiledInfo, ...this.industryFiledInfo];
+      //表格显示的字段
+      this.sotckTableFiled = this.sotckFiledInfo.filter((data) => {
+        return data.is_show == 1;
       });
-      //抽屉中表格选中的字段
-      this.filedChecked = this.filedInfo.filter((data) => {
-        return data.is_show === 1;
+      this.industryTableFiled = this.industryFiledInfo.filter((data) => {
+        return data.is_show == 1;
       });
-      // 获取表格显示字段
-      this.filedTable = this.filedInfo.filter((data) => {
-        return data.is_show === 1;
-      });
-
-      // 股票模块显示字段
-      this.sotckTableFiled = this.filedTable.filter((data) => {
-        return data.tablename == "stock_bk_stock";
-      });
-      // 行业模块显示字段
-      this.industryTableFiled = this.filedTable.filter((data) => {
-        return data.tablename == "stock_bk";
-      });
-      //***以下要删除
 
       // 需要搜索字段
       this.selecFiledChose();
@@ -620,11 +627,13 @@ export default {
       this.selectFiledTable = [];
       if (this.searchSelect == "行业") {
         this.selectFiledTable = this.industryTableFiled.filter((data) => {
-          return data.is_select === 1;
+          // return data.is_select === 1;
+          return data;
         });
       } else if (this.searchSelect == "股票") {
         this.selectFiledTable = this.sotckTableFiled.filter((data) => {
-          return data.is_select === 1;
+          // return data.is_select === 1;
+          return data;
         });
       }
     },
@@ -638,7 +647,6 @@ export default {
     // 抽屉功能：字段部分增删改查
     // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
-      let res;
       let newVal = this.filedChecked.map((item) => item.id);
       let oldVal = this.filedTable.map((item) => item.id);
       // *****获取结果渲染到页面表格

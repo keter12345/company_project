@@ -673,7 +673,10 @@ export default {
     },
     // 添加搜索条件
     addStockSearch() {
-      if (this.searchForm.length == this.filedTable.length) {
+      if (
+        this.filedTable.length <= 0 ||
+        this.searchForm.length == this.filedTable.length
+      ) {
         this.$message({
           message: "搜索条件上限！",
           type: "warning",
