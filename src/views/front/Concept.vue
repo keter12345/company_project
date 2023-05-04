@@ -1,13 +1,129 @@
 <template >
   <div class="body">
-    <!-- 头部搜索框 -->
-    <div></div>
+    <!-- 头部搜索按钮 -->
+    <div class="search">
+      <div class="search-right">
+        <i
+          class="el-icon-search icon"
+          @click="stockSearchShow = !stockSearchShow"
+          title="搜索"
+        ></i>
+        <i class="el-icon-setting icon" @click="openFiled" title="设置"></i>
+      </div>
+    </div>
+    <!-- 搜索框部分 -->
+    <div>
+      <transition name="el-zoom-in-top">
+        <el-card class="box-card" v-show="stockSearchShow">
+          <div slot="header" class="clearfix">
+            <span>
+              搜索模块:
+              <el-radio-group v-model="searchSelect">
+                <el-radio-button label="概念"></el-radio-button>
+                <el-radio-button
+                  label="股票"
+                ></el-radio-button> </el-radio-group
+            ></span>
+            <span style="float: right">
+              <i
+                class="el-icon-delete icon"
+                title="清空条件"
+                @click="clareStockSearch"
+              ></i>
+              <i
+                class="el-icon-plus icon"
+                @click="addStockSearch"
+                title="添加条件"
+              ></i>
+              <i
+                class="el-icon-check icon"
+                @click="checkedStockSearch"
+                title="搜索"
+              ></i
+            ></span>
+          </div>
+          <div
+            v-for="(item, index) in searchForm"
+            :key="index"
+            class="card_item"
+          >
+            <el-input
+              placeholder="请输入内容"
+              v-model="item.stockSearchVal"
+              size="medium"
+            >
+              <el-select
+                v-model="item.stockSearchSelect"
+                slot="prepend"
+                placeholder="请选择"
+              >
+                <el-option
+                  v-for="item in selectFiledTable"
+                  :key="item.id"
+                  :label="item.filedname"
+                  :value="item.prop"
+                ></el-option>
+              </el-select>
+            </el-input>
+          </div>
+        </el-card>
+      </transition>
+    </div>
+
+    <!-- 字段设置抽屉，用于字段选择 -->
+    <div>
+      <el-drawer
+        :with-header="false"
+        :visible.sync="drawer"
+        @close="cancle"
+        size="25%"
+      >
+        <div class="main">
+          <div class="header">
+            <span class="header_left">显示设置</span>
+            <span class="header_right">
+              <i class="el-icon-check icon" @click="checked()" title="确定"></i>
+              <i class="el-icon-refresh icon" @click="reset()" title="刷新"></i>
+              <i class="el-icon-close icon" @click="cancle()" title="关闭"></i>
+            </span>
+          </div>
+          <div>
+            <el-table
+              ref="filedInfoTable"
+              :data="filedInfo"
+              tooltip-effect="dark"
+              style="width: 100%"
+              @selection-change="handleSelectionChange"
+              :row-key="getRowKey"
+            >
+              <!-- 多选框 -->
+              <el-table-column
+                type="selection"
+                width="55"
+                :reserve-selection="true"
+              >
+              </el-table-column>
+              <!-- 表头搜索框 -->
+              <el-table-column>
+                <template slot="header" slot-scope="scope">
+                  <el-input
+                    v-model="filedSearchVal"
+                    size="mini"
+                    placeholder="输入关键字搜索"
+                  />
+                </template>
+                <template slot-scope="scope">{{
+                  scope.row.filedname
+                }}</template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+      </el-drawer>
+    </div>
+
     <!-- 表格部分 -->
-    <el-table
-      :data="searchVal != '' ? searchInfo : ConceptInfo"
-      stripe
-      style="width: 100%"
-    >
+    <el-table :data="ConceptInfo" stripe style="width: 100%">
       <!-- 子模块 -->
       <el-table-column type="expand">
         <template slot-scope="props">
@@ -46,40 +162,39 @@
               @selection-change="StockSelectionChange"
             >
               <el-table-column type="selection" width="45"> </el-table-column>
-              <el-table-column
-                prop="ts_code"
-                label="股票代码"
-              ></el-table-column>
-              <el-table-column prop="ts_name" label="股票名称">
-              </el-table-column>
-              <el-table-column prop="rd_datetime" label="返回时间">
-              </el-table-column>
-              <el-table-column prop="latest_price" label="最新价（元）">
-              </el-table-column>
-              <el-table-column sortable prop="changpercent" label="涨跌幅 %">
-              </el-table-column>
-              <el-table-column prop="tradingamount" label="成交额(元)">
-              </el-table-column>
-              <el-table-column prop="swing" label="振幅  %"> </el-table-column>
-              <el-table-column prop="turnoverrate" label="换手率 %">
-              </el-table-column>
-              <el-table-column sortable prop="zsz" label="总市值">
-              </el-table-column>
-              <el-table-column prop="ltsz" label="流通市值"> </el-table-column>
-              <el-table-column
-                prop="status"
-                label="状态"
-                :formatter="statusTag"
-                :filters="[
-                  { text: '普通', value: 0 },
-                  { text: '重要', value: 1 },
-                  { text: '龙头', value: 2 },
-                ]"
-                :filter-method="statusFilterTag"
-                filter-placement="bottom-end"
-              >
-              </el-table-column>
-              <el-table-column align="right">
+
+              <template v-for="(item, index) in sotckTableFiled">
+                <el-table-column
+                  sortable
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-if="item.prop == 'changpercent' || item.prop == 'zsz'"
+                ></el-table-column>
+                <el-table-column
+                  sortable
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  :formatter="statusTag"
+                  :filters="[
+                    { text: '普通', value: 0 },
+                    { text: '重要', value: 1 },
+                    { text: '龙头', value: 2 },
+                  ]"
+                  :filter-method="statusFilterTag"
+                  filter-placement="bottom-end"
+                  v-else-if="item.prop == 'status'"
+                >
+                </el-table-column>
+                <el-table-column
+                  :key="index"
+                  :prop="item.prop"
+                  :label="item.filedname"
+                  v-else
+                ></el-table-column>
+              </template>
+              <el-table-column align="right" label="操作">
                 <template slot-scope="scope">
                   <el-button
                     type="primary"
@@ -130,65 +245,52 @@
           </div>
         </template>
       </el-table-column>
+      <template v-for="(item, index) in conceptTableFiled">
+        <el-table-column
+          sortable
+          :key="index"
+          :label="item.filedname"
+          v-if="item.prop == 'bk_name'"
+        >
+          <template slot-scope="scope">
+            <el-link :href="scope.row.bk_www" target="_blank">{{
+              scope.row.bk_name
+            }}</el-link>
+          </template>
+        </el-table-column>
 
-      <el-table-column label="概念名称" width="180">
-        <template slot-scope="scope">
-          <el-link :href="scope.row.bk_www" target="_blank">{{
-            scope.row.bk_name
-          }}</el-link>
-        </template></el-table-column
-      >
-      <el-table-column
-        prop="bk_code"
-        label="概念代码"
-        width="180"
-      ></el-table-column>
-      <el-table-column sortable prop="bk_zcjl" label="成交量"></el-table-column>
-      <el-table-column
-        sortable
-        prop="bk_changpercent"
-        label="涨跌幅"
-      ></el-table-column>
-      <el-table-column label="备注"> </el-table-column>
-      <el-table-column
-        prop="zycd"
-        label="重要程度"
-        :formatter="zycdTag"
-        :filters="[
-          { text: '正常', value: '0' },
-          { text: '热点', value: '1' },
-          { text: '重要热点', value: '2' },
-        ]"
-        :filter-method="zycdFilterTag"
-        filter-placement="bottom-end"
-      ></el-table-column>
+        <el-table-column
+          sortable
+          :key="index"
+          :prop="item.prop"
+          :label="item.filedname"
+          v-else-if="item.prop == 'bk_zcjl' || item.prop == 'bk_changpercent'"
+        ></el-table-column>
+        <el-table-column
+          sortable
+          :key="index"
+          :prop="item.prop"
+          :label="item.filedname"
+          :formatter="zycdTag"
+          :filters="[
+            { text: '正常', value: '0' },
+            { text: '热点', value: '1' },
+            { text: '重要热点', value: '2' },
+          ]"
+          :filter-method="zycdFilterTag"
+          filter-placement="bottom-end"
+          v-else-if="item.prop == 'zycd'"
+        >
+        </el-table-column>
+        <el-table-column
+          :key="index"
+          :prop="item.prop"
+          :label="item.filedname"
+          v-else
+        ></el-table-column>
+      </template>
+
       <el-table-column label="操作">
-        <!-- <template slot="header" slot-scope="scope">
-          <div>
-            、 -->
-        <!-- 搜索框 -->
-        <!-- <template>
-              <el-input
-                placeholder="请输入搜索内容"
-                v-model="searchVal"
-                class="input-with-select"
-              >
-                <el-select
-                  v-model="searchSelect"
-                  slot="prepend"
-                  placeholder="请选择"
-                >
-                  <el-option
-                    v-for="item in options"
-                    :key="item.value"
-                    :label="item.label"
-                    :value="item.value"
-                  ></el-option>
-                </el-select>
-              </el-input>
-            </template> -->
-        <!-- </div>
-        </template> -->
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -219,17 +321,37 @@ import {
   getAllBKGNInfoAPI,
   updateGNLevelAPI,
   updateGNItemStatusAPI,
+  getFileInfoAPI,
 } from "../../api/index.js";
 export default {
   name: "Concept",
   components: {},
   data() {
     return {
+      filedInfo: [
+        //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
+      ],
+      sotckFiledInfo: [
+        //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
+      ],
+      conceptFiledInfo: [
+        //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
+      ],
+      sotckTableFiled: [],
+      conceptTableFiled: [],
+      filedChecked: [], //已选择的字段
+      filedSearchVal: "", //字段搜索值
       ConceptInfo: null, //储存所有数据
       searchInfo: [], //存储搜索结果数据
       importLevel: ["正常", "热点", "重要热点"], //概念重要程度分类
       stockStatus: ["普通", "重要", "龙头"], //股票状态分类
       stockSelection: [], //多选框所选中的股票数据
+      stockSearchShow: false, //数据搜索框是否展示
+      searchSelect: "概念",
+      searchVal: [], //搜索值
+      searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
+      selectFiledTable: [], //需要搜索字段数据
+      drawer: false, //设置抽屉是否显示
       options: [
         //选择器选项
         {
@@ -248,54 +370,99 @@ export default {
   computed: {},
   // 数据监听
   watch: {
-    // 搜索值改变时自动返回搜索结果
-    searchVal: {
-      handler(val, oldVal) {
-        // 搜索前数据刷新
-        this.getAllGN();
-        this.searchInfo = [];
-        this.searchInfo = this.Search(val, this.ConceptInfo);
+    // 搜索模块改变，需要搜索的字段也改变
+    searchSelect: {
+      handler(newVal, oldVal) {
+        this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
+        this.searchVal = [];
+        this.selecFiledChose();
       },
+    },
+    // 字段抽屉搜索功能
+    filedSearchVal: {
+      handler(newVal, oldVal0) {},
     },
   },
 
   methods: {
-    // 方法：搜索功能，val：搜索值、info：搜索对象
-    Search(val, info) {
-      let res = [];
-      if (val) {
-        if (this.searchSelect == "概念") {
-          // 搜索选项为'概念'进行搜索
-          res = info.filter(
-            (data) =>
-              !val ||
-              data.bk_code.toString().includes(val) ||
-              data.bk_name.toString().includes(val)
-          );
-        } else if (this.searchSelect == "股票") {
-          console.log("股票");
-          // 搜索选项为'股票'进行搜索
-          info.forEach((item) => {
-            item.values = item.values.filter(
-              (data) =>
-                !val ||
-                data.ts_code.toString().includes(val) ||
-                data.ts_name.toString().includes(val)
-            );
-            if (item.values.length > 0) {
-              // 搜索结果赋值
-              res.push(item);
-            }
-          });
+    // 股票数值格式化保留两位小数 时间显示时刻部分
+    stockInfoFormat(info) {
+      info.forEach((data) => {
+        for (const key in data) {
+          if (key != "Id" && typeof data[key] == "number") {
+            data[key] = Number(data[key].toFixed(2));
+          } else if (key == "rd_datetime") {
+            data[key] = data[key].substr(data[key].lastIndexOf(" "));
+          }
         }
-      }
-      // 返回结果
-      return res;
+      });
+      return info;
     },
     // 方法：获取所有概念信息
     async getAllGN() {
-      let res = await getAllBKGNInfoAPI();
-      this.ConceptInfo = JSON.parse(res);
+      let res = this.stockInfoFormat(JSON.parse(await getAllBKGNInfoAPI()));
+      // console.log(res);
+      if (this.searchVal.length > 0) {
+        // console.log(this.searchVal);
+        if (this.searchSelect == "概念") {
+          // 搜索选项为'概念'进行搜索
+          this.searchVal.forEach((val) => {
+            res = res.filter((data) => {
+              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
+                data = eval(`data.${val.stockSearchSelect}.toString()`);
+                return (
+                  data.substr(0, val.stockSearchVal.length) ==
+                  val.stockSearchVal
+                );
+              } else {
+                return (
+                  !val ||
+                  eval(
+                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                  )
+                );
+              }
+            });
+          });
+        } else if (this.searchSelect == "股票") {
+          // 搜索选项为'股票'进行搜索
+          this.searchVal.forEach((val) => {
+            res.forEach((item) => {
+              item.values = item.values.filter((res) => {
+                if (typeof eval(`res.${val.stockSearchSelect}`) == "number") {
+                  res = eval(`res.${val.stockSearchSelect}.toString()`);
+                  return (
+                    res.substr(0, val.stockSearchVal.length) ==
+                    val.stockSearchVal
+                  );
+                } else {
+                  return (
+                    !val ||
+                    eval(
+                      `res.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
+                    )
+                  );
+                }
+              });
+              res = res.filter((data) => {
+                return data.values.length > 0;
+              });
+            });
+          });
+        }
+      }
+      this.ConceptInfo = res;
+    },
+    // 打开字段抽屉
+    openFiled() {
+      this.drawer = true;
+      this.$nextTick(() => {
+        if (this.$refs.filedInfoTable) {
+          this.filedChecked.forEach((row) => {
+            this.$refs.filedInfoTable.toggleRowSelection(row, true);
+          });
+        }
+      });
     },
 
     // 方法：修改概念信息重要程度，bk_code, val：修改值
@@ -303,11 +470,7 @@ export default {
       let res = "";
       try {
         res = await updateGNLevelAPI(bk_code, val);
-        this.ConceptInfo = JSON.parse(res);
-        // 有搜索值时，展示更新后的搜索结果
-        if (this.searchVal != "") {
-          this.searchInfo = this.Search(this.searchVal, this.ConceptInfo);
-        }
+        this.getAllGN();
         // 更新成功提示框
         this.$message({
           message: "重要程度更新成功！",
@@ -341,14 +504,7 @@ export default {
 
       let res = await updateGNItemStatusAPI(bk_code, data, status);
       if (res == 1) {
-        let info = JSON.parse(await getAllBKGNInfoAPI());
-        // 有搜索值时，展示更新后的搜索结果，否则更新所有结果
-        if (this.searchVal != "") {
-          info = this.Search(this.searchVal, info);
-          this.searchInfo[index].values = info[index].values;
-        } else {
-          this.ConceptInfo[index].values = info[index].values;
-        }
+        this.getAllGN();
         // 更新成功提示框
         this.$message({
           message: "状态更新成功！",
@@ -378,22 +534,211 @@ export default {
     StockSelectionChange(val) {
       this.stockSelection = val;
     },
+    getRowKey(row) {
+      return row.id;
+    },
+    handleSelectionChange(val) {
+      this.filedChecked = val;
+    },
     // 取消多选框选择
     clear() {
       this.$refs.stockTable.clearSelection();
     },
+    // 添加搜索条件
+    addStockSearch() {
+      if (
+        this.selectFiledTable.length <= 0 ||
+        this.searchForm.length == this.selectFiledTable.length
+      ) {
+        this.$message({
+          message: "搜索条件上限！",
+          type: "warning",
+        });
+      } else {
+        this.searchForm.push({ stockSearchVal: "", stockSearchSelect: "" });
+      }
+    },
+    // 重置搜索条件
+    async clareStockSearch() {
+      this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
+      this.searchVal = [];
+      this.getAllGN();
+    },
+    // 多条件搜索
+    async checkedStockSearch() {
+      this.searchVal = [];
+      this.searchForm.forEach((val) => {
+        if (val.stockSearchVal != "" && val.stockSearchSelect != "") {
+          this.searchVal.push({ ...val });
+        }
+      });
+      if (this.searchVal.length > 0) {
+        // 进行数据查询
+        this.getAllGN();
+        this.stockSearchShow = false;
+      } else {
+        this.$message({
+          message: "请输入完整的搜索条件！",
+          type: "warning",
+        });
+      }
+    },
+    // 抽屉功能：字段部分增删改查
+    // *****获取需要的字段***
+    async getFileInfo() {
+      this.sotckFiledInfo = await getFileInfoAPI("stock_gn_stock");
+      this.conceptFiledInfo = await getFileInfoAPI("stock_gn");
+      this.filedInfo = [...this.sotckFiledInfo, ...this.conceptFiledInfo];
+      //表格显示的字段
+      this.sotckTableFiled = this.sotckFiledInfo.filter((data) => {
+        return data.is_show == 1;
+      });
+      this.conceptTableFiled = this.conceptFiledInfo.filter((data) => {
+        return data.is_show == 1;
+      });
+      //已选择的字段
+      this.filedChecked = [...this.sotckTableFiled, ...this.conceptTableFiled];
+
+      // 需要搜索字段
+      this.selecFiledChose();
+    },
+    // 获取搜索的字段（val值来区分股票和行业）
+    selecFiledChose() {
+      this.selectFiledTable = [];
+      if (this.searchSelect == "概念") {
+        this.selectFiledTable = this.conceptTableFiled.filter((data) => {
+          return data.is_select === 1;
+          // return data;
+        });
+      } else if (this.searchSelect == "股票") {
+        this.selectFiledTable = this.sotckTableFiled.filter((data) => {
+          return data.is_select === 1;
+          // return data;
+        });
+      }
+    },
+    // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
+    async checked() {
+      let newVal = this.filedChecked.map((item) => item.id);
+      let oldVal = this.filedTable.map((item) => item.id);
+      // *****获取结果渲染到页面表格
+      if (newVal == "") {
+        this.$alert("请选择需要显示的内容", "提示", {
+          confirmButtonText: "确定",
+        });
+        return;
+      } else if (
+        JSON.stringify(oldVal.sort()) != JSON.stringify(newVal.sort())
+      ) {
+        res = await updateFilInfoAPI(newVal);
+        // this.filedTable = this.filedChecked;
+        // 更新页面数据
+        // await this.getFileInfo();
+      }
+      this.drawer = false;
+    },
+    // 重置按钮，重置选择内容
+    async reset() {
+      // 清空搜索和多选内容
+      this.$refs.filedInfoTable.clearSelection();
+      this.filedSearch = "";
+      // 重新获取渲染数据
+      await this.getFileInfo();
+      this.$nextTick(() => {
+        if (this.$refs.filedInfoTable) {
+          0;
+          this.filedChecked.forEach((row) => {
+            this.$refs.filedInfoTable.toggleRowSelection(row, true);
+          });
+        }
+      });
+    },
+    // 取消按钮，重新渲染内容并关闭抽屉
+    cancle() {
+      this.reset();
+      this.drawer = false;
+    },
   },
-  created() {
-    this.getAllGN();
+  async created() {
+    await this.getFileInfo();
+    await this.getAllGN();
   },
 };
 </script>
-<style>
+<style lang="less" scoped>
 .body {
   margin: 0;
   padding: 0;
 }
 .el-select .el-input {
   width: 130px;
+}
+.search {
+  height: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  .search-right {
+    .icon {
+      padding: 0 10px;
+      font-size: 20px;
+    }
+
+    .icon:hover {
+      color: #409eff;
+      content: attr(title);
+    }
+  }
+}
+.box-card {
+  // text-align: center;
+  // display: flex;
+  .clearfix {
+    .icon {
+      font-size: 20px;
+      padding: 5px;
+    }
+
+    .icon:hover {
+      color: #409eff;
+      content: attr(title);
+    }
+  }
+  .card_item {
+    margin-right: 20px;
+    margin-top: 5px;
+    max-width: 500px;
+    justify-content: space-around;
+    display: inline-flex;
+    .el-select {
+      width: 130px;
+    }
+  }
+}
+.header {
+  padding: 0 20px;
+  height: 50px;
+  text-align: center;
+  line-height: 50px;
+
+  .header_left {
+    float: left;
+  }
+
+  .header_right {
+    float: right;
+
+    .icon {
+      font-size: 20px;
+      padding: 5px;
+    }
+
+    .icon:hover {
+      color: #409eff;
+      content: attr(title);
+    }
+  }
 }
 </style>

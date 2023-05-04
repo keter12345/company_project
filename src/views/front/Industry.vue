@@ -291,34 +291,6 @@
           v-else
         ></el-table-column>
       </template>
-      <!-- <el-table-column label="行业名称" width="180">
-        <template slot-scope="scope">
-          <el-link :href="scope.row.bk_www" target="_blank">{{
-            scope.row.bk_name
-          }}</el-link>
-        </template></el-table-column
-      > -->
-      <!-- <el-table-column prop="bk_code" label="行业代码"></el-table-column>
-
-      <el-table-column sortable prop="bk_zcjl" label="成交量"></el-table-column>
-      <el-table-column
-        sortable
-        prop="bk_changpercent"
-        label="涨跌幅"
-      ></el-table-column>
-      <el-table-column label="备注"> </el-table-column> -->
-      <!-- <el-table-column
-        prop="zycd"
-        label="重要程度"
-        :formatter="zycdTag"
-        :filters="[
-          { text: '正常', value: '0' },
-          { text: '热点', value: '1' },
-          { text: '重要热点', value: '2' },
-        ]"
-        :filter-method="zycdFilterTag"
-        filter-placement="bottom-end"
-      ></el-table-column> -->
       <el-table-column label="操作">
         <template slot-scope="scope">
           <el-button
@@ -406,6 +378,10 @@ export default {
         this.searchVal = [];
         this.selecFiledChose();
       },
+    },
+    // 字段抽屉搜索功能
+    filedSearchVal: {
+      handler(newVal, oldVal0) {},
     },
   },
 
@@ -555,13 +531,10 @@ export default {
     },
     // 添加搜索条件
     addStockSearch() {
-      let length;
-      if (this.searchSelect == "行业") {
-        length = this.industryFiledInfo.length;
-      } else {
-        length = this.sotckFiledInfo.length;
-      }
-      if (length <= 0 || this.searchForm.length == length) {
+      if (
+        this.selectFiledTable.length <= 0 ||
+        this.searchForm.length == this.selectFiledTable.length
+      ) {
         this.$message({
           message: "搜索条件上限！",
           type: "warning",
@@ -618,6 +591,8 @@ export default {
       this.industryTableFiled = this.industryFiledInfo.filter((data) => {
         return data.is_show == 1;
       });
+      //已选择的字段
+      this.filedChecked = [...this.sotckTableFiled, ...this.industryTableFiled];
 
       // 需要搜索字段
       this.selecFiledChose();
@@ -627,13 +602,13 @@ export default {
       this.selectFiledTable = [];
       if (this.searchSelect == "行业") {
         this.selectFiledTable = this.industryTableFiled.filter((data) => {
-          // return data.is_select === 1;
-          return data;
+          return data.is_select === 1;
+          // return data;
         });
       } else if (this.searchSelect == "股票") {
         this.selectFiledTable = this.sotckTableFiled.filter((data) => {
-          // return data.is_select === 1;
-          return data;
+          return data.is_select === 1;
+          // return data;
         });
       }
     },
@@ -764,6 +739,9 @@ export default {
     max-width: 500px;
     justify-content: space-around;
     display: inline-flex;
+    .el-select {
+      width: 130px;
+    }
   }
 }
 </style>

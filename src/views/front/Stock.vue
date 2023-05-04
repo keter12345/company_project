@@ -837,6 +837,9 @@ export default {
     max-width: 500px;
     justify-content: space-around;
     display: inline-flex;
+    .el-select {
+      width: 130px;
+    }
   }
 }
 
