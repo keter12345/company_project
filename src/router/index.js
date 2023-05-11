@@ -3,7 +3,7 @@ import VueRouter from 'vue-router'
 import Industry from '../views/front/Industry.vue'
 import Stock from '../views/front/Stock.vue'
 import Index from '../views/index'
-import Filed from '../views/admin/filed'
+import Field from '../views/admin/Field'
 import Concept from '../views/front/Concept'
 import History from '../views/front/History'
 import StockJS from '../views/front/StockJS'
@@ -56,8 +56,8 @@ const routes = [
       },
 
       {
-        path: '/filed',
-        component: Filed,
+        path: '/field',
+        component: Field,
         meta: {
           title: '字段管理'
         }

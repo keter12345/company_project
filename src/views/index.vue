@@ -49,13 +49,13 @@
               </el-menu-item-group>
             </el-submenu>
 
-            <el-submenu index="/filed">
+            <el-submenu index="/field">
               <template slot="title">
                 <i class="el-icon-menu"></i>
                 <span>管理模块</span>
               </template>
               <el-menu-item-group>
-                <el-menu-item index="/filed">
+                <el-menu-item index="/field">
                   <i class="el-icon-s-home"></i>
                   <span slot="title">字段管理</span>
                 </el-menu-item>

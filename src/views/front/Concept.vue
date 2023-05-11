@@ -8,7 +8,7 @@
           @click="stockSearchShow = !stockSearchShow"
           title="搜索"
         ></i>
-        <i class="el-icon-setting icon" @click="openFiled" title="设置"></i>
+        <i class="el-icon-setting icon" @click="openField" title="设置"></i>
       </div>
     </div>
     <!-- 搜索框部分 -->
@@ -58,7 +58,7 @@
                 placeholder="请选择"
               >
                 <el-option
-                  v-for="item in selectFiledTable"
+                  v-for="item in selectFieldTable"
                   :key="item.id"
                   :label="item.filedname"
                   :value="item.prop"
@@ -88,35 +88,70 @@
             </span>
           </div>
           <div>
-            <el-table
-              ref="filedInfoTable"
-              :data="filedInfo"
-              tooltip-effect="dark"
-              style="width: 100%"
-              @selection-change="handleSelectionChange"
-              :row-key="getRowKey"
-            >
-              <!-- 多选框 -->
-              <el-table-column
-                type="selection"
-                width="55"
-                :reserve-selection="true"
-              >
-              </el-table-column>
-              <!-- 表头搜索框 -->
-              <el-table-column>
-                <template slot="header" slot-scope="scope">
-                  <el-input
-                    v-model="filedSearchVal"
-                    size="mini"
-                    placeholder="输入关键字搜索"
-                  />
-                </template>
-                <template slot-scope="scope">{{
-                  scope.row.filedname
-                }}</template>
-              </el-table-column>
-            </el-table>
+            <el-tabs v-model="activeName" @tab-click="fieldTabChange">
+              <el-tab-pane label="概念字段" name="concept">
+                <el-table
+                  ref="conceptFieldTable"
+                  :data="conceptFieldInfo"
+                  tooltip-effect="dark"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange1"
+                  :row-key="getRowKey"
+                >
+                  <!-- 多选框 -->
+                  <el-table-column
+                    type="selection"
+                    width="55"
+                    :reserve-selection="true"
+                  >
+                  </el-table-column>
+                  <!-- 表头搜索框 -->
+                  <el-table-column>
+                    <template slot="header" slot-scope="scope">
+                      <el-input
+                        v-model="fieldSearchVal"
+                        size="mini"
+                        placeholder="输入关键字搜索"
+                      />
+                    </template>
+                    <template slot-scope="scope">{{
+                      scope.row.filedname
+                    }}</template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+              <el-tab-pane label="股票字段" name="stock">
+                <el-table
+                  ref="sotckFieldTable"
+                  :data="sotckFieldInfo"
+                  tooltip-effect="dark"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange2"
+                  :row-key="getRowKey"
+                >
+                  <!-- 多选框 -->
+                  <el-table-column
+                    type="selection"
+                    width="55"
+                    :reserve-selection="true"
+                  >
+                  </el-table-column>
+                  <!-- 表头搜索框 -->
+                  <el-table-column>
+                    <template slot="header" slot-scope="scope">
+                      <el-input
+                        v-model="fieldSearchVal"
+                        size="mini"
+                        placeholder="输入关键字搜索"
+                      />
+                    </template>
+                    <template slot-scope="scope">{{
+                      scope.row.filedname
+                    }}</template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
           </div>
         </div>
       </el-drawer>
@@ -163,7 +198,7 @@
             >
               <el-table-column type="selection" width="45"> </el-table-column>
 
-              <template v-for="(item, index) in sotckTableFiled">
+              <template v-for="(item, index) in sotckTableField">
                 <el-table-column
                   sortable
                   :key="index"
@@ -245,7 +280,7 @@
           </div>
         </template>
       </el-table-column>
-      <template v-for="(item, index) in conceptTableFiled">
+      <template v-for="(item, index) in conceptTableField">
         <el-table-column
           sortable
           :key="index"
@@ -321,26 +356,29 @@ import {
   getAllBKGNInfoAPI,
   updateGNLevelAPI,
   updateGNItemStatusAPI,
-  getFileInfoAPI,
+  getFieldInfoByTablenameAPI,
+  updateFieldShowAPI,
 } from "../../api/index.js";
 export default {
   name: "Concept",
   components: {},
   data() {
     return {
-      filedInfo: [
+      fieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      sotckFiledInfo: [
+      sotckFieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      conceptFiledInfo: [
+      conceptFieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      sotckTableFiled: [],
-      conceptTableFiled: [],
-      filedChecked: [], //已选择的字段
-      filedSearchVal: "", //字段搜索值
+      sotckTableField: [],
+      conceptTableField: [],
+      fieldChecked: [], //已选择的字段
+      conceptFieldChecked: [],
+      stockFieldChecked: [],
+      fieldSearchVal: "", //字段搜索值
       ConceptInfo: null, //储存所有数据
       searchInfo: [], //存储搜索结果数据
       importLevel: ["正常", "热点", "重要热点"], //概念重要程度分类
@@ -350,7 +388,7 @@ export default {
       searchSelect: "概念",
       searchVal: [], //搜索值
       searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
-      selectFiledTable: [], //需要搜索字段数据
+      selectFieldTable: [], //需要搜索字段数据
       drawer: false, //设置抽屉是否显示
       options: [
         //选择器选项
@@ -365,6 +403,7 @@ export default {
       ],
       searchSelect: "概念", //选择器选择结果，默认“概念”
       searchVal: "", //搜索值
+      activeName: "concept",
     };
   },
   computed: {},
@@ -375,12 +414,29 @@ export default {
       handler(newVal, oldVal) {
         this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
         this.searchVal = [];
-        this.selecFiledChose();
+        this.selecFieldChose();
       },
     },
     // 字段抽屉搜索功能
-    filedSearchVal: {
-      handler(newVal, oldVal0) {},
+    fieldSearchVal: {
+      async handler(newVal, oldVal0) {
+        if (newVal == "") {
+          this.sotckFieldInfo = await getFieldInfoByTablenameAPI(
+            "stock_gn_stock"
+          );
+          this.conceptFieldInfo = await getFieldInfoByTablenameAPI("stock_gn");
+        } else {
+          if (this.activeName == "concept") {
+            this.conceptFieldInfo = this.conceptFieldInfo.filter((data) => {
+              return data.filedname.includes(newVal);
+            });
+          } else if (this.activeName == "stock") {
+            this.sotckFieldInfo = this.sotckFieldInfo.filter((data) => {
+              return data.filedname.includes(newVal);
+            });
+          }
+        }
+      },
     },
   },
 
@@ -454,15 +510,26 @@ export default {
       this.ConceptInfo = res;
     },
     // 打开字段抽屉
-    openFiled() {
+    openField() {
       this.drawer = true;
-      this.$nextTick(() => {
-        if (this.$refs.filedInfoTable) {
-          this.filedChecked.forEach((row) => {
-            this.$refs.filedInfoTable.toggleRowSelection(row, true);
-          });
-        }
-      });
+      //已选择的字段
+      if (this.activeName == "concept") {
+        this.$nextTick(() => {
+          if (this.$refs.conceptFieldTable) {
+            this.conceptFieldChecked.forEach((row) => {
+              this.$refs.conceptFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      } else if (this.activeName == "stock") {
+        this.$nextTick(() => {
+          if (this.$refs.sotckFieldTable) {
+            this.stockFieldChecked.forEach((row) => {
+              this.$refs.sotckFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      }
     },
 
     // 方法：修改概念信息重要程度，bk_code, val：修改值
@@ -537,8 +604,12 @@ export default {
     getRowKey(row) {
       return row.id;
     },
-    handleSelectionChange(val) {
-      this.filedChecked = val;
+    // 抽屉多选框选择功能-绑定方法
+    handleSelectionChange1(val) {
+      this.conceptFieldChecked = val;
+    },
+    handleSelectionChange2(val) {
+      this.stockFieldChecked = val;
     },
     // 取消多选框选择
     clear() {
@@ -547,8 +618,8 @@ export default {
     // 添加搜索条件
     addStockSearch() {
       if (
-        this.selectFiledTable.length <= 0 ||
-        this.searchForm.length == this.selectFiledTable.length
+        this.selectFieldTable.length <= 0 ||
+        this.searchForm.length == this.selectFieldTable.length
       ) {
         this.$message({
           message: "搜索条件上限！",
@@ -586,72 +657,102 @@ export default {
     // 抽屉功能：字段部分增删改查
     // *****获取需要的字段***
     async getFileInfo() {
-      this.sotckFiledInfo = await getFileInfoAPI("stock_gn_stock");
-      this.conceptFiledInfo = await getFileInfoAPI("stock_gn");
-      this.filedInfo = [...this.sotckFiledInfo, ...this.conceptFiledInfo];
+      this.sotckFieldInfo = await getFieldInfoByTablenameAPI("stock_gn_stock");
+      this.conceptFieldInfo = await getFieldInfoByTablenameAPI("stock_gn");
+
       //表格显示的字段
-      this.sotckTableFiled = this.sotckFiledInfo.filter((data) => {
+      this.sotckTableField = this.sotckFieldInfo.filter((data) => {
         return data.is_show == 1;
       });
-      this.conceptTableFiled = this.conceptFiledInfo.filter((data) => {
+      this.conceptTableField = this.conceptFieldInfo.filter((data) => {
         return data.is_show == 1;
       });
       //已选择的字段
-      this.filedChecked = [...this.sotckTableFiled, ...this.conceptTableFiled];
-
+      this.conceptFieldChecked = this.conceptFieldInfo.filter((data) => {
+        return data.is_show == 1;
+      });
+      this.stockFieldChecked = this.sotckFieldInfo.filter((data) => {
+        return data.is_show == 1;
+      });
       // 需要搜索字段
-      this.selecFiledChose();
+      this.selecFieldChose();
     },
+
     // 获取搜索的字段（val值来区分股票和行业）
-    selecFiledChose() {
-      this.selectFiledTable = [];
+    selecFieldChose() {
+      this.selectFieldTable = [];
       if (this.searchSelect == "概念") {
-        this.selectFiledTable = this.conceptTableFiled.filter((data) => {
+        this.selectFieldTable = this.conceptTableField.filter((data) => {
           return data.is_select === 1;
-          // return data;
         });
       } else if (this.searchSelect == "股票") {
-        this.selectFiledTable = this.sotckTableFiled.filter((data) => {
+        this.selectFieldTable = this.sotckTableField.filter((data) => {
           return data.is_select === 1;
-          // return data;
+        });
+      }
+    },
+    fieldTabChange(tab, event) {
+      this.fieldSearchVal = "";
+      if (tab.name == "concept") {
+        this.$nextTick(() => {
+          if (this.$refs.conceptFieldTable) {
+            this.conceptFieldChecked.forEach((row) => {
+              this.$refs.conceptFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      } else if (tab.name == "stock") {
+        this.$nextTick(() => {
+          if (this.$refs.sotckFieldTable) {
+            this.stockFieldChecked.forEach((row) => {
+              this.$refs.sotckFieldTable.toggleRowSelection(row, true);
+            });
+          }
         });
       }
     },
     // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
-      let newVal = this.filedChecked.map((item) => item.id);
-      let oldVal = this.filedTable.map((item) => item.id);
+      let conceptIds = this.conceptFieldChecked.map((item) => item.id);
+      let stockIds = this.stockFieldChecked.map((item) => item.id);
       // *****获取结果渲染到页面表格
-      if (newVal == "") {
+      if (conceptIds == "" || stockIds == "") {
         this.$alert("请选择需要显示的内容", "提示", {
           confirmButtonText: "确定",
         });
         return;
-      } else if (
-        JSON.stringify(oldVal.sort()) != JSON.stringify(newVal.sort())
-      ) {
-        res = await updateFilInfoAPI(newVal);
-        // this.filedTable = this.filedChecked;
-        // 更新页面数据
-        // await this.getFileInfo();
+      } else {
+        let conceptRes = await updateFieldShowAPI(conceptIds, "stock_gn");
+        let stockRes = await updateFieldShowAPI(stockIds, "stock_gn_stock");
+        await this.getFileInfo();
       }
       this.drawer = false;
     },
     // 重置按钮，重置选择内容
     async reset() {
       // 清空搜索和多选内容
-      this.$refs.filedInfoTable.clearSelection();
-      this.filedSearch = "";
+      this.$refs.conceptFieldTable.clearSelection();
+      this.$refs.sotckFieldTable.clearSelection();
+      this.fieldSearch = "";
       // 重新获取渲染数据
       await this.getFileInfo();
-      this.$nextTick(() => {
-        if (this.$refs.filedInfoTable) {
-          0;
-          this.filedChecked.forEach((row) => {
-            this.$refs.filedInfoTable.toggleRowSelection(row, true);
-          });
-        }
-      });
+      if (this.activeName == "concept") {
+        this.$nextTick(() => {
+          if (this.$refs.conceptFieldTable) {
+            this.conceptFieldChecked.forEach((row) => {
+              this.$refs.conceptFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      } else if (this.activeName == "stock") {
+        this.$nextTick(() => {
+          if (this.$refs.sotckFieldTable) {
+            this.stockFieldChecked.forEach((row) => {
+              this.$refs.sotckFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      }
     },
     // 取消按钮，重新渲染内容并关闭抽屉
     cancle() {
@@ -716,6 +817,9 @@ export default {
       width: 130px;
     }
   }
+}
+.el-tabs {
+  margin: 0 10px;
 }
 .header {
   padding: 0 20px;

@@ -8,7 +8,7 @@
           @click="stockSearchShow = !stockSearchShow"
           title="搜索"
         ></i>
-        <i class="el-icon-setting icon" @click="openFiled" title="设置"></i>
+        <i class="el-icon-setting icon" @click="openField" title="设置"></i>
       </div>
     </div>
     <!-- 搜索框部分 -->
@@ -58,7 +58,7 @@
                 placeholder="请选择"
               >
                 <el-option
-                  v-for="item in selectFiledTable"
+                  v-for="item in selectFieldTable"
                   :key="item.id"
                   :label="item.filedname"
                   :value="item.prop"
@@ -88,35 +88,70 @@
             </span>
           </div>
           <div>
-            <el-table
-              ref="filedInfoTable"
-              :data="filedInfo"
-              tooltip-effect="dark"
-              style="width: 100%"
-              @selection-change="handleSelectionChange"
-              :row-key="getRowKey"
-            >
-              <!-- 多选框 -->
-              <el-table-column
-                type="selection"
-                width="55"
-                :reserve-selection="true"
-              >
-              </el-table-column>
-              <!-- 表头搜索框 -->
-              <el-table-column>
-                <template slot="header" slot-scope="scope">
-                  <el-input
-                    v-model="filedSearchVal"
-                    size="mini"
-                    placeholder="输入关键字搜索"
-                  />
-                </template>
-                <template slot-scope="scope">{{
-                  scope.row.filedname
-                }}</template>
-              </el-table-column>
-            </el-table>
+            <el-tabs v-model="activeName" @tab-click="fieldTabChange">
+              <el-tab-pane label="行业字段" name="industry">
+                <el-table
+                  ref="industryFieldTable"
+                  :data="industryFieldInfo"
+                  tooltip-effect="dark"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange1"
+                  :row-key="getRowKey"
+                >
+                  <!-- 多选框 -->
+                  <el-table-column
+                    type="selection"
+                    width="55"
+                    :reserve-selection="true"
+                  >
+                  </el-table-column>
+                  <!-- 表头搜索框 -->
+                  <el-table-column>
+                    <template slot="header" slot-scope="scope">
+                      <el-input
+                        v-model="fieldSearchVal"
+                        size="mini"
+                        placeholder="输入关键字搜索"
+                      />
+                    </template>
+                    <template slot-scope="scope">{{
+                      scope.row.filedname
+                    }}</template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+              <el-tab-pane label="股票字段" name="stock">
+                <el-table
+                  ref="sotckFieldTable"
+                  :data="sotckFieldInfo"
+                  tooltip-effect="dark"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange2"
+                  :row-key="getRowKey"
+                >
+                  <!-- 多选框 -->
+                  <el-table-column
+                    type="selection"
+                    width="55"
+                    :reserve-selection="true"
+                  >
+                  </el-table-column>
+                  <!-- 表头搜索框 -->
+                  <el-table-column>
+                    <template slot="header" slot-scope="scope">
+                      <el-input
+                        v-model="fieldSearchVal"
+                        size="mini"
+                        placeholder="输入关键字搜索"
+                      />
+                    </template>
+                    <template slot-scope="scope">{{
+                      scope.row.filedname
+                    }}</template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
           </div>
         </div>
       </el-drawer>
@@ -164,7 +199,7 @@
             >
               <el-table-column type="selection" width="45"> </el-table-column>
 
-              <template v-for="(item, index) in sotckTableFiled">
+              <template v-for="(item, index) in sotckTableField">
                 <el-table-column
                   sortable
                   :key="index"
@@ -247,7 +282,7 @@
         </template>
       </el-table-column>
 
-      <template v-for="(item, index) in industryTableFiled">
+      <template v-for="(item, index) in industryTableField">
         <el-table-column
           sortable
           :key="index"
@@ -322,7 +357,8 @@ import {
   getAllBGListAPI,
   updateBGLevelAPI,
   updateItemStatusAPI,
-  getFileInfoAPI,
+  getFieldInfoByTablenameAPI,
+  updateFieldShowAPI,
 } from "../../api/index.js";
 export default {
   name: "Industry",
@@ -331,20 +367,22 @@ export default {
     return {
       IndustryInfo: null, //储存所有数据
       drawer: false, //设置抽屉是否显示
-      filedInfo: [
+      fieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      sotckFiledInfo: [
+      sotckFieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      industryFiledInfo: [
+      industryFieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      filedChecked: [], //已选择的字段
-      filedSearchVal: "", //字段搜索值
+      fieldChecked: [], //已选择的字段
+      industryFieldChecked: [],
+      stockFieldChecked: [],
+      fieldSearchVal: "", //字段搜索值
       checkAll: false, //字段是否全选
-      sotckTableFiled: [], //股票子模块显示的字段
-      industryTableFiled: [], //行业模块显示字段
+      sotckTableField: [], //股票子模块显示的字段
+      industryTableField: [], //行业模块显示字段
       searchInfo: [], //存储搜索结果数据
       importLevel: ["正常", "热点", "重要热点"], //行业重要程度分类
       stockStatus: ["普通", "重要", "龙头"], //股票状态分类
@@ -364,8 +402,8 @@ export default {
       searchVal: [], //搜索值
       searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
       stockSearchShow: false, //数据搜索框是否展示
-      selectFiledTable: [], //需要搜索字段数据
-      tablename: "stock_show",
+      selectFieldTable: [], //需要搜索字段数据
+      activeName: "industry",
     };
   },
   computed: {},
@@ -376,12 +414,29 @@ export default {
       handler(newVal, oldVal) {
         this.searchForm = [{ stockSearchVal: "", stockSearchSelect: "" }];
         this.searchVal = [];
-        this.selecFiledChose();
+        this.selecFieldChose();
       },
     },
     // 字段抽屉搜索功能
-    filedSearchVal: {
-      handler(newVal, oldVal0) {},
+    fieldSearchVal: {
+      async handler(newVal, oldVal) {
+        if (newVal == "") {
+          this.sotckFieldInfo = await getFieldInfoByTablenameAPI(
+            "stock_bk_stock"
+          );
+          this.industryFieldInfo = await getFieldInfoByTablenameAPI("stock_bk");
+        } else {
+          if (this.activeName == "industry") {
+            this.industryFieldInfo = this.industryFieldInfo.filter((data) => {
+              return data.filedname.includes(newVal);
+            });
+          } else if (this.activeName == "stock") {
+            this.sotckFieldInfo = this.sotckFieldInfo.filter((data) => {
+              return data.filedname.includes(newVal);
+            });
+          }
+        }
+      },
     },
   },
 
@@ -532,8 +587,8 @@ export default {
     // 添加搜索条件
     addStockSearch() {
       if (
-        this.selectFiledTable.length <= 0 ||
-        this.searchForm.length == this.selectFiledTable.length
+        this.selectFieldTable.length <= 0 ||
+        this.searchForm.length == this.selectFieldTable.length
       ) {
         this.$message({
           message: "搜索条件上限！",
@@ -569,92 +624,138 @@ export default {
       }
     },
     // 打开字段抽屉
-    openFiled() {
+    openField() {
       this.drawer = true;
-      this.$nextTick(() => {
-        if (this.$refs.filedInfoTable) {
-          this.filedChecked.forEach((row) => {
-            this.$refs.filedInfoTable.toggleRowSelection(row, true);
-          });
-        }
-      });
+      //已选择的字段
+      if (this.activeName == "industry") {
+        this.$nextTick(() => {
+          if (this.$refs.industryFieldTable) {
+            this.industryFieldChecked.forEach((row) => {
+              this.$refs.industryFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      } else if (this.activeName == "stock") {
+        this.$nextTick(() => {
+          if (this.$refs.sotckFieldTable) {
+            this.stockFieldChecked.forEach((row) => {
+              this.$refs.sotckFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      }
     },
     // *****获取需要的字段***
     async getFileInfo() {
-      this.sotckFiledInfo = await getFileInfoAPI("stock_bk_stock");
-      this.industryFiledInfo = await getFileInfoAPI("stock_bk");
-      this.filedInfo = [...this.sotckFiledInfo, ...this.industryFiledInfo];
+      this.sotckFieldInfo = await getFieldInfoByTablenameAPI("stock_bk_stock");
+      this.industryFieldInfo = await getFieldInfoByTablenameAPI("stock_bk");
+
       //表格显示的字段
-      this.sotckTableFiled = this.sotckFiledInfo.filter((data) => {
+      this.sotckTableField = this.sotckFieldInfo.filter((data) => {
         return data.is_show == 1;
       });
-      this.industryTableFiled = this.industryFiledInfo.filter((data) => {
+      this.industryTableField = this.industryFieldInfo.filter((data) => {
         return data.is_show == 1;
       });
       //已选择的字段
-      this.filedChecked = [...this.sotckTableFiled, ...this.industryTableFiled];
 
+      this.industryFieldChecked = this.industryFieldInfo.filter((data) => {
+        return data.is_show == 1;
+      });
+      this.stockFieldChecked = this.sotckFieldInfo.filter((data) => {
+        return data.is_show == 1;
+      });
       // 需要搜索字段
-      this.selecFiledChose();
+      this.selecFieldChose();
     },
     // 获取搜索的字段（val值来区分股票和行业）
-    selecFiledChose() {
-      this.selectFiledTable = [];
+    selecFieldChose() {
+      this.selectFieldTable = [];
       if (this.searchSelect == "行业") {
-        this.selectFiledTable = this.industryTableFiled.filter((data) => {
+        this.selectFieldTable = this.industryTableField.filter((data) => {
           return data.is_select === 1;
-          // return data;
         });
       } else if (this.searchSelect == "股票") {
-        this.selectFiledTable = this.sotckTableFiled.filter((data) => {
+        this.selectFieldTable = this.sotckTableField.filter((data) => {
           return data.is_select === 1;
-          // return data;
         });
       }
     },
     // 抽屉多选框选择功能-绑定方法
-    handleSelectionChange(val) {
-      this.filedChecked = val;
+    handleSelectionChange1(val) {
+      this.industryFieldChecked = val;
+    },
+    handleSelectionChange2(val) {
+      this.stockFieldChecked = val;
     },
     getRowKey(row) {
       return row.id;
     },
+
     // 抽屉功能：字段部分增删改查
     // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
+    // 显示字段模块改变
+    fieldTabChange(tab, event) {
+      this.fieldSearchVal = "";
+      if (tab.name == "industry") {
+        this.$nextTick(() => {
+          if (this.$refs.industryFieldTable) {
+            this.industryFieldChecked.forEach((row) => {
+              this.$refs.industryFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      } else if (tab.name == "stock") {
+        this.$nextTick(() => {
+          if (this.$refs.sotckFieldTable) {
+            this.stockFieldChecked.forEach((row) => {
+              this.$refs.sotckFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      }
+    },
     async checked() {
-      let newVal = this.filedChecked.map((item) => item.id);
-      let oldVal = this.filedTable.map((item) => item.id);
+      let industryIds = this.industryFieldChecked.map((item) => item.id);
+      let stockIds = this.stockFieldChecked.map((item) => item.id);
       // *****获取结果渲染到页面表格
-      if (newVal == "") {
+      if (industryIds == "" || stockIds == "") {
         this.$alert("请选择需要显示的内容", "提示", {
           confirmButtonText: "确定",
         });
         return;
-      } else if (
-        JSON.stringify(oldVal.sort()) != JSON.stringify(newVal.sort())
-      ) {
-        res = await updateFilInfoAPI(newVal);
-        // this.filedTable = this.filedChecked;
-        // 更新页面数据
-        // await this.getFileInfo();
+      } else {
+        let industryRes = await updateFieldShowAPI(industryIds, "stock_bk");
+        let stockRes = await updateFieldShowAPI(stockIds, "stock_bk_stock");
+        await this.getFileInfo();
       }
       this.drawer = false;
     },
     // 重置按钮，重置选择内容
     async reset() {
       // 清空搜索和多选内容
-      this.$refs.filedInfoTable.clearSelection();
-      this.filedSearch = "";
+      this.$refs.industryFieldTable.clearSelection();
+      this.$refs.sotckFieldTable.clearSelection();
+      this.fieldSearch = "";
       // 重新获取渲染数据
       await this.getFileInfo();
-      this.$nextTick(() => {
-        if (this.$refs.filedInfoTable) {
-          0;
-          this.filedChecked.forEach((row) => {
-            this.$refs.filedInfoTable.toggleRowSelection(row, true);
-          });
-        }
-      });
+      if (this.activeName == "industry") {
+        this.$nextTick(() => {
+          if (this.$refs.industryFieldTable) {
+            this.industryFieldChecked.forEach((row) => {
+              this.$refs.industryFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      } else if (this.activeName == "stock") {
+        this.$nextTick(() => {
+          if (this.$refs.sotckFieldTable) {
+            this.stockFieldChecked.forEach((row) => {
+              this.$refs.sotckFieldTable.toggleRowSelection(row, true);
+            });
+          }
+        });
+      }
     },
     // 取消按钮，重新渲染内容并关闭抽屉
     cancle() {
@@ -699,7 +800,9 @@ export default {
     }
   }
 }
-
+.el-tabs {
+  margin: 0 10px;
+}
 .search {
   height: 40px;
   width: 100%;

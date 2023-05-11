@@ -8,10 +8,26 @@
           style="width: 100px"
           v-model="refreshTime"
           controls-position="right"
-          @change="timeChange"
           :min="1"
           size="medium"
         ></el-input-number>
+        <el-button
+          style="margin-left: 10px"
+          plain
+          type="primary"
+          size="small"
+          @click="timeChange"
+          >确定</el-button
+        >
+        <el-button
+          size="small"
+          plain
+          @click="
+            refreshTime = 5;
+            timeChange;
+          "
+          >重置</el-button
+        >
       </div>
 
       <div class="search-right">
@@ -68,7 +84,7 @@
                 placeholder="请选择"
               >
                 <el-option
-                  v-for="item in filedTable"
+                  v-for="item in optionFieldSelect"
                   :key="item.id"
                   :label="item.filedname"
                   :value="item.prop"
@@ -99,8 +115,8 @@
           </div>
           <div>
             <el-table
-              ref="filedInfoTable"
-              :data="filedInfo"
+              ref="fieldInfoTable"
+              :data="fieldInfo"
               tooltip-effect="dark"
               style="width: 100%"
               @selection-change="handleSelectionChange"
@@ -117,7 +133,7 @@
               <el-table-column>
                 <template slot="header" slot-scope="scope">
                   <el-input
-                    v-model="filedSearchVal"
+                    v-model="fieldSearchVal"
                     size="mini"
                     placeholder="输入关键字搜索"
                   />
@@ -155,7 +171,7 @@
               class="commonScrollbarTable"
             >
               <!-- id字段 -->
-              <template v-for="(item, index) in filedTable">
+              <template v-for="(item, index) in fieldTable">
                 <el-table-column
                   :key="index"
                   :prop="item.prop"
@@ -192,7 +208,7 @@
                   :prop="item.prop"
                   :label="item.filedname"
                   sortable
-                  v-else-if="filedColorSelect.includes(item.prop)"
+                  v-else-if="fieldColorSelect.includes(item.prop)"
                 >
                   <template slot-scope="scope">
                     <span>
@@ -238,7 +254,7 @@
               :header-cell-style="{ background: '#EBEEF5' }"
               class="commonScrollbarTable"
             >
-              <template v-for="(item, index) in filedTable">
+              <template v-for="(item, index) in fieldTable">
                 <el-table-column
                   :key="index"
                   :prop="item.prop"
@@ -276,7 +292,7 @@
                   :prop="item.prop"
                   :label="item.filedname"
                   sortable
-                  v-else-if="filedColorSelect.includes(item.prop)"
+                  v-else-if="fieldColorSelect.includes(item.prop)"
                 >
                   <template slot-scope="scope">
                     <span>
@@ -316,8 +332,8 @@
 <script>
 import $ from "jquery";
 import {
-  getFileInfoAPI,
-  updateFilInfoAPI,
+  getFieldInfoByTablenameAPI,
+  updateFieldShowAPI,
   getZbStockInfoAPI,
   getCkStockInfoAPI,
 } from "../../api/index";
@@ -332,21 +348,21 @@ export default {
       paneSize: 50, //上 zb表模块高度百分比
       zbStockInfo: null, //所有zb表股票数据
       ckStockInfo: null,
-      filedInfo: [
+      fieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
-      filedChecked: [], //已选择的字段
-      filedTable: [], //显示在表上的字段
+      fieldChecked: [], //已选择的字段
+      fieldTable: [], //显示在表上的字段
       drawer: false, //设置抽屉是否显示
       checkAll: false, //字段是否全选
-      filedSearchVal: "", //字段搜索值
+      fieldSearchVal: "", //字段搜索值
       zbUpIconShow: [], //红↑显示字段id合集
       zbDownIconShow: [], //绿↓显示字段id合集
       ckUpIconShow: [], //红↑显示字段id合集
       ckDownIconShow: [], //绿↓显示字段id合集
       stockSearchShow: false, //数据搜索框是否展示
-      filedColorSelect: [], //红绿效果切换字段值合集
-      filedZYCD2: [],
+      fieldColorSelect: [], //红绿效果切换字段值合集
+      fieldZYCD2: [],
       searchForm: [{ stockSearchVal: "", stockSearchSelect: "" }], //表单上的搜索值
       searchVal: [], //最终搜索值
       searchTableSelect: "zb", //选择需要搜索的表
@@ -367,6 +383,7 @@ export default {
       zbHeight: "100%", //zb表高度
       ckHeight: "100%", //ck表高度
       detailVisible: false, //板块详情展示页面
+      optionFieldSelect: [],
     };
   },
 
@@ -382,10 +399,10 @@ export default {
 
   watch: {
     // 监听字段搜索数据
-    filedSearchVal: {
+    fieldSearchVal: {
       handler(newVal, oldVal) {
         if (newVal != "") {
-          this.filedInfo = this.filedInfo.filter((data) => {
+          this.fieldInfo = this.fieldInfo.filter((data) => {
             return data.filedname.includes(newVal);
           });
         } else {
@@ -404,7 +421,7 @@ export default {
           newVal.forEach((item) => {
             index = oldVal.findIndex((n) => n.Id == item.Id);
             if (index >= 0) {
-              this.filedColorSelect.forEach((val) => {
+              this.fieldColorSelect.forEach((val) => {
                 if (
                   eval(
                     `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
@@ -436,7 +453,7 @@ export default {
           newVal.forEach((item) => {
             index = oldVal.findIndex((n) => n.Id == item.Id);
             if (index >= 0) {
-              this.filedColorSelect.forEach((val) => {
+              this.fieldColorSelect.forEach((val) => {
                 if (
                   eval(
                     `parseFloat(item.${val})> parseFloat(oldVal[index].${val})`
@@ -517,14 +534,14 @@ export default {
     },
     // 根据数据，改变单元格颜色
     returnStyle(obj) {
-      let filed = this.filedInfo.filter((item) => {
+      let field = this.fieldInfo.filter((item) => {
         return item.prop === obj.column.property;
       });
       //  大于chengdu值红色
       if (
-        this.filedColorSelect.includes(obj.column.property) &&
+        this.fieldColorSelect.includes(obj.column.property) &&
         eval(`parseFloat(obj.row.${obj.column.property})`) >
-          parseFloat(filed[0].chengdu)
+          parseFloat(field[0].chengdu)
       ) {
         return {
           color: "red",
@@ -532,16 +549,16 @@ export default {
       }
       // 小于chengdu值绿色
       if (
-        this.filedColorSelect.includes(obj.column.property) &&
+        this.fieldColorSelect.includes(obj.column.property) &&
         eval(`parseFloat(obj.row.${obj.column.property})`) <
-          parseFloat(filed[0].chengdu)
+          parseFloat(field[0].chengdu)
       ) {
         return {
           color: "green",
         };
       }
       // 特殊颜色变化
-      this.filedZYCD2.forEach((item) => {
+      this.fieldZYCD2.forEach((item) => {
         // console.log(item);
         if (
           item.cz_ziduan == obj.column.property &&
@@ -569,31 +586,35 @@ export default {
     },
     // 获取所有字段相关数据
     async getFileInfo() {
-      this.filedInfo = await getFileInfoAPI(this.tablename);
-      this.filedInfo = this.filedInfo.filter((data) => {
+      this.fieldInfo = await getFieldInfoByTablenameAPI(this.tablename);
+      this.fieldInfo = this.fieldInfo.filter((data) => {
         return data.tablename == this.tablename;
       });
       // 获取已选显示字段
-      this.filedChecked = this.filedInfo.filter((data) => {
+      this.fieldChecked = this.fieldInfo.filter((data) => {
         return data.is_show === 1;
       });
       // 获取表格显示字段
-      this.filedTable = this.filedInfo.filter((data) => {
+      this.fieldTable = this.fieldInfo.filter((data) => {
         return data.is_show === 1;
       });
+      // //搜索框搜索条件
+      this.optionFieldSelect = this.fieldTable.filter((data) => {
+        return data.is_select == 1;
+      });
 
-      this.filedTable.forEach((data) => {
+      this.fieldTable.forEach((data) => {
         // 获取需要颜色变化字段
         if (data.is_czzd == 1) {
-          this.filedColorSelect.push(data.prop);
+          this.fieldColorSelect.push(data.prop);
         }
       });
-      console.log(this.filedInfo);
+      console.log(this.fieldInfo);
       //获取需要特殊颜色变化的字段
-      this.filedZYCD2 = this.filedInfo.filter((data) => {
+      this.fieldZYCD2 = this.fieldInfo.filter((data) => {
         return data.is_show == 0 && data.is_czzd == 2 && data.cz_ziduan != null;
       });
-      // console.log(this.filedZYCD2);
+      // console.log(this.fieldZYCD2);
     },
 
     // **抽屉模块功能**
@@ -601,16 +622,16 @@ export default {
     open() {
       this.drawer = true;
       this.$nextTick(() => {
-        if (this.$refs.filedInfoTable) {
-          this.filedChecked.forEach((row) => {
-            this.$refs.filedInfoTable.toggleRowSelection(row, true);
+        if (this.$refs.fieldInfoTable) {
+          this.fieldChecked.forEach((row) => {
+            this.$refs.fieldInfoTable.toggleRowSelection(row, true);
           });
         }
       });
     },
     // 抽屉多选框选择功能-绑定方法
     handleSelectionChange(val) {
-      this.filedChecked = val;
+      this.fieldChecked = val;
     },
     getRowKey(row) {
       return row.id;
@@ -618,9 +639,8 @@ export default {
     // 抽屉功能：字段部分增删改查
     // ！！！确认按钮,发送、更新选中数据数据 updata接口！！！！
     async checked() {
-      let res;
-      let newVal = this.filedChecked.map((item) => item.id);
-      let oldVal = this.filedTable.map((item) => item.id);
+      let newVal = this.fieldChecked.map((item) => item.id);
+      let oldVal = this.fieldTable.map((item) => item.id);
       // *****获取结果渲染到页面表格
       if (newVal == "") {
         this.$alert("请选择需要显示的内容", "提示", {
@@ -630,25 +650,26 @@ export default {
       } else if (
         JSON.stringify(oldVal.sort()) != JSON.stringify(newVal.sort())
       ) {
-        res = await updateFilInfoAPI(newVal);
-        // this.filedTable = this.filedChecked;
+        res = await updateFieldShowAPI(newVal, this.tablename);
+        // this.fieldTable = this.fieldChecked;
         // 更新页面数据
-        // await this.getFileInfo();
+        console.log(res);
+        await this.getFileInfo();
       }
       this.drawer = false;
     },
     // 重置按钮，重置选择内容
     async reset() {
       // 清空搜索和多选内容
-      this.$refs.filedInfoTable.clearSelection();
-      this.filedSearch = "";
+      this.$refs.fieldInfoTable.clearSelection();
+      this.fieldSearch = "";
       // 重新获取渲染数据
       await this.getFileInfo();
       this.$nextTick(() => {
-        if (this.$refs.filedInfoTable) {
+        if (this.$refs.fieldInfoTable) {
           0;
-          this.filedChecked.forEach((row) => {
-            this.$refs.filedInfoTable.toggleRowSelection(row, true);
+          this.fieldChecked.forEach((row) => {
+            this.$refs.fieldInfoTable.toggleRowSelection(row, true);
           });
         }
       });
@@ -674,8 +695,8 @@ export default {
     // 添加搜索条件
     addStockSearch() {
       if (
-        this.filedTable.length <= 0 ||
-        this.searchForm.length == this.filedTable.length
+        this.fieldTable.length <= 0 ||
+        this.searchForm.length == this.fieldTable.length
       ) {
         this.$message({
           message: "搜索条件上限！",
@@ -717,8 +738,8 @@ export default {
         setTimeout(fun(), 0);
       }, dely * 1000);
     },
-    timeChange(val) {
-      this.setTimer(this.getAllStock, val);
+    timeChange() {
+      this.setTimer(this.getAllStock, this.refreshTime);
     },
     // 滚动条样式
     enter(id) {
