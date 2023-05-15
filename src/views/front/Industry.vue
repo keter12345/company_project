@@ -191,7 +191,7 @@
             <!-- 股票部分表格 start-->
             <el-table
               ref="stockTable"
-              max-height="550px"
+              max-height="550"
               :data="props.row.values"
               tooltip-effect="dark"
               style="width: 100%"
@@ -230,7 +230,7 @@
                   v-else
                 ></el-table-column>
               </template>
-              <el-table-column align="right" label="操作">
+              <el-table-column width="220" label="操作" fixed="right">
                 <template slot-scope="scope">
                   <el-button
                     type="primary"
@@ -326,7 +326,7 @@
           v-else
         ></el-table-column>
       </template>
-      <el-table-column label="操作">
+      <el-table-column align="right" label="操作">
         <template slot-scope="scope">
           <el-button
             size="mini"
@@ -417,6 +417,7 @@ export default {
         this.selecFieldChose();
       },
     },
+
     // 字段抽屉搜索功能
     fieldSearchVal: {
       async handler(newVal, oldVal) {
@@ -762,6 +763,11 @@ export default {
       this.reset();
       this.drawer = false;
     },
+    // doLayout() {
+    //   this.$nextTick(() => {
+    //     this.$refs.stockTable.doLayout();
+    //   });
+    // },
   },
   async created() {
     // 获取字段值

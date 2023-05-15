@@ -74,12 +74,17 @@
             <el-input v-model="fieldItemFrom.filedname"></el-input>
           </el-form-item>
           <el-form-item label="控制表">
-            <el-select
+            <el-autocomplete
+              class="inline-input"
               v-model="fieldItemFrom.tablename"
-              placeholder="请选择表名"
+              :fetch-suggestions="tablenameSearch"
+              placeholder="请输入表名"
+              @select="tablenameSelect"
             >
-              <el-option label="stock_show" value="stock_show"></el-option>
-            </el-select>
+              <template slot-scope="{ item }">
+                <div>{{ item.tablename }}</div>
+              </template>
+            </el-autocomplete>
           </el-form-item>
           <el-form-item label="修改时间">
             <el-date-picker
@@ -113,7 +118,7 @@
           <el-form-item label="排序">
             <el-input v-model="fieldItemFrom.num"></el-input>
           </el-form-item>
-          <!-- 详细描述 -->
+
           <el-form-item label="操作">
             <el-select
               v-model="fieldItemFrom.is_czzd"
@@ -123,6 +128,29 @@
               <el-option label="1" value="1"></el-option>
               <el-option label="2" value="2"></el-option>
             </el-select>
+          </el-form-item>
+          <el-form-item
+            label="程度"
+            prop="chengdu"
+            :rules="[
+              { required: false, message: '不能为空' },
+              { type: 'number', message: '请输入0-9的数字' },
+            ]"
+          >
+            <el-input v-model.number="fieldItemFrom.chengdu"></el-input>
+          </el-form-item>
+          <el-form-item label="cz_ziduan">
+            <el-select
+              v-model="fieldItemFrom.cz_ziduan"
+              placeholder="请选择程度等级"
+            >
+              <el-option label="0" value="0"></el-option>
+              <el-option label="1" value="1"></el-option>
+              <el-option label="2" value="2"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="单位">
+            <el-input v-model="fieldItemFrom.danwei"></el-input>
           </el-form-item>
           <el-form-item label="备注">
             <el-input type="textarea" v-model="fieldItemFrom.bak"></el-input>
@@ -146,6 +174,7 @@ import {
 export default {
   components: {},
   data() {
+    // var chengdu
     return {
       fieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
@@ -154,6 +183,15 @@ export default {
       fieldItemFrom: {},
       drawer: false,
       tablenameFilter: [],
+      tablenames: [
+        { tablename: "stock_show" },
+        { tablename: "stock_history_js" },
+        { tablename: "stock_show_history" },
+        { tablename: "stock_bk_stock" },
+        { tablename: "stock_bk" },
+        { tablename: "stock_gn_stock" },
+        { tablename: "stock_gn" },
+      ],
     };
   },
 
@@ -168,7 +206,6 @@ export default {
       this.fieldInfo = this.fieldInfoFormat(this.fieldInfo);
     },
     fieldInfoFormat(info) {
-      console.log(info);
       let set = new Set();
       info = info.filter((data) => {
         // data["rd_datetime"] = data["rd_datetime"].substr(data["rd_datetime"].lastIndexOf(" "));
@@ -178,7 +215,7 @@ export default {
       for (let i of set) {
         this.tablenameFilter.push({ text: i, value: i });
       }
-      console.log(info);
+
       return info;
     },
     showTag(row, cloumn) {
@@ -196,6 +233,19 @@ export default {
       } else {
         // 添加
       }
+    },
+    tablenameSearch(value, cb) {
+      var tablenames = this.tablenames;
+      var res = value
+        ? tablenames.filter((data) => {
+            return data.tablename.toLowerCase().includes(value.toLowerCase());
+          })
+        : tablenames;
+      console.log(res);
+      cb(res);
+    },
+    tablenameSelect(item) {
+      console.log(item);
     },
     filterTag(value, row) {
       return row.tag === value;

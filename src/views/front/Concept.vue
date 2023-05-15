@@ -229,7 +229,7 @@
                   v-else
                 ></el-table-column>
               </template>
-              <el-table-column align="right" label="操作">
+              <el-table-column width="220px" fixed="right" label="操作">
                 <template slot-scope="scope">
                   <el-button
                     type="primary"
@@ -325,7 +325,7 @@
         ></el-table-column>
       </template>
 
-      <el-table-column label="操作">
+      <el-table-column label="操作" align="right">
         <template slot-scope="scope">
           <el-button
             size="mini"
