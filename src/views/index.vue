@@ -10,7 +10,7 @@
       <el-container>
         <el-aside :width="isCollapse ? '65px' : '200px'">
           <el-menu
-            :default-active="activeIndex"
+            :default-active="this.$route.path"
             class="el-menu-vertical-demo"
             router
             :collapse="isCollapse"
@@ -76,14 +76,11 @@
 export default {
   data() {
     return {
-      activeIndex: "/industry",
       isCollapse: true,
     };
   },
   methods: {
-    handleSelect(key, keyPath) {
-      this.activeIndex = keyPath[1];
-    },
+    handleSelect(key, keyPath) {},
   },
 };
 </script>
