@@ -59,7 +59,7 @@
               type="primary"
               size="small"
               plain
-              >启动
+              >查询
             </el-button>
             <el-button v-else type="danger" @click="stop" size="small" plain>
               停止
@@ -375,7 +375,6 @@
 import { getStockJSAPI, getFieldInfoByTablenameAPI } from "@/api/index";
 import { Splitpanes, Pane } from "splitpanes";
 import "splitpanes/dist/splitpanes.css";
-import $ from "jquery";
 export default {
   components: { Splitpanes, Pane },
   data() {
@@ -551,6 +550,8 @@ export default {
   methods: {
     // 获取js表数据
     async getStockJS() {
+      console.log(typeof this.startDatetime);
+      console.log(this.endDatetime);
       let res = await getStockJSAPI(
         this.startDatetime,
         this.endDatetime,
