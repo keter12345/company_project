@@ -1,5 +1,11 @@
 import { getAllBGList, updateBGLevel, updateItemStatus } from './industry'
-import { getZbStockInfo, getCkStockInfo } from './stock'
+import {
+    getZbStockInfo,
+    getCkStockInfo,
+    getAllStockInfo,
+    getAllStockHyInfo,
+    getAllStockGnInfo
+} from './stock'
 import { getAllBKGNInfo, updateGNLevel, updateGNItemStatus } from "./concept"
 import { getHistory } from "./history"
 import { getStockJS } from './stockjs'
@@ -15,6 +21,10 @@ export const updateFieldShowAPI = updateFieldShow
 export const getAllFieldInfoAPI = getAllFieldInfo
 
 export const getZbStockInfoAPI = getZbStockInfo
+export const getAllStockHyInfoAPI = getAllStockHyInfo
+
+export const getAllStockGnInfoAPI = getAllStockGnInfo
+export const getAllStockInfoAPI = getAllStockInfo
 
 export const getCkStockInfoAPI = getCkStockInfo
 

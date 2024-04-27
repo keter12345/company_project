@@ -26,8 +26,15 @@
             refreshTime = 5;
             timeChange;
           "
-          >重置</el-button
-        >
+          >重置</el-button>
+       <span style="color: #909399"> 是否测试<el-checkbox v-model="isChecked" @change="handleChange"></el-checkbox></span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">跌停数量 ：</span><span class="green-text">{{allStockInfo[0].less_than_zero_count}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">小于-10%数量 ：</span><span class="green-text">{{allStockInfo[0].less_than_minus_10}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">-10%到-5%数量 ：</span><span class="green-text">{{allStockInfo[0].between_minus_10_and_minus_5}}</span>&nbsp;&nbsp;&nbsp;
+         <span style="color: #909399">下跌数量 </span><span class="green-text">{{allStockInfo[0].less_than_0}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">上涨数量 ：</span><span class="red-text">{{allStockInfo[0].greater_than_0}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">涨停数量 ：</span><span class="red-text">{{allStockInfo[0].greater_than_zero_count}}</span>&nbsp;&nbsp;&nbsp;
+
       </div>
 
       <div class="search-right">
@@ -114,41 +121,83 @@
             </span>
           </div>
           <div>
-            <el-table
-              ref="fieldInfoTable"
-              :data="fieldInfo"
-              tooltip-effect="dark"
-              style="width: 100%"
-              @selection-change="handleSelectionChange"
-              :row-key="getRowKey"
-            >
-              <!-- 多选框 -->
-              <el-table-column
-                type="selection"
-                width="55"
-                :reserve-selection="true"
-              >
-              </el-table-column>
-              <!-- 表头搜索框 -->
-              <el-table-column>
-                <template slot="header" slot-scope="scope">
-                  <el-input
-                    v-model="fieldSearchVal"
-                    size="mini"
-                    placeholder="输入关键字搜索"
-                  />
-                </template>
-                <template slot-scope="scope">{{
-                  scope.row.filedname
-                }}</template>
-              </el-table-column>
-            </el-table>
+            <el-tabs v-model="activeName" @tab-click="fieldTabChange">
+              <el-tab-pane label="行业字段" name="industry">
+                <el-table
+                  ref="fieldInfoTable"
+                  :data="fieldInfo"
+                  tooltip-effect="dark"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange1"
+                  :row-key="getRowKey"
+                >
+                  <!-- 多选框 -->
+                  <el-table-column
+                    type="selection"
+                    width="55"
+                    :reserve-selection="true"
+                  >
+                  </el-table-column>
+                  <!-- 表头搜索框 -->
+                  <el-table-column>
+                    <template slot="header" slot-scope="scope">
+                      <el-input
+                        v-model="fieldSearchVal"
+                        size="mini"
+                        placeholder="输入关键字搜索"
+                      />
+                    </template>
+                    <template slot-scope="scope">{{
+                      scope.row.filedname
+                    }}</template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+              <el-tab-pane label="股票字段" name="stock">
+                <el-table
+                  ref="sotckFieldTable"
+                  :data="sotckFieldInfo"
+                  tooltip-effect="dark"
+                  style="width: 100%"
+                  @selection-change="handleSelectionChange2"
+                  :row-key="getRowKey"
+                >
+                  <!-- 多选框 -->
+                  <el-table-column
+                    type="selection"
+                    width="55"
+                    :reserve-selection="true"
+                  >
+                  </el-table-column>
+                  <!-- 表头搜索框 -->
+                  <el-table-column>
+                    <template slot="header" slot-scope="scope">
+                      <el-input
+                        v-model="fieldSearchVal"
+                        size="mini"
+                        placeholder="输入关键字搜索"
+                      />
+                    </template>
+                    <template slot-scope="scope">{{
+                      scope.row.filedname
+                    }}</template>
+                  </el-table-column>
+                </el-table>
+              </el-tab-pane>
+            </el-tabs>
           </div>
         </div>
       </el-drawer>
     </div>
     <!-- 表格数据位置 -->
     <div class="out" ref="out">
+
+
+
+
+
+
+
       <splitpanes
         @resize="(paneSize = $event[0].size), resize()"
         horizontal
@@ -170,16 +219,23 @@
               :header-cell-style="{ background: '#EBEEF5' }"
               class="commonScrollbarTable"
             >
+
+
+
+
+
               <!-- id字段 -->
               <template v-for="(item, index) in fieldTable">
+
                 <el-table-column
                   :key="index"
                   :prop="item.prop"
                   :label="item.filedname"
                   v-if="item.prop == 'ts_code'"
                 >
+
                   <template slot-scope="scope">
-                    <el-link target="_blank" @click="openDetail">{{
+                    <el-link target="_blank" @click="openDetail(scope.row.ts_code,scope.row.countnum,scope.row.ts_name,scope.row.changpercent,scope.row.tradingamount_dw,scope.row.lxztts,scope.row.cjbl  )">{{
                       scope.row.ts_code
                     }}</el-link>
                   </template>
@@ -325,7 +381,30 @@
         <!-- </template> -->
       </splitpanes>
     </div>
-    <el-dialog title="标题" :visible.sync="detailVisible"> test </el-dialog>
+<el-dialog :title="this.bkstockTscode + '    名称：'+this.bkstockTsname+'    涨跌幅:'+this.bkstockChangpercent+'   成交额：'+this.bkstockTradingamount+' 涨停天数：'+this.bkstockLxztts+'交易倍速：'+
+      this.bkstockJybs" :visible.sync="detailVisible">
+
+
+
+  <div style="display: flex; flex-wrap: wrap;">
+     <div v-for="(table, index) in bkStockHyInfo" :key="index" style="flex: 1; margin: 10px; border: 1px solid #ccc;">
+      <h3 a>{{table.bk_name}}, <span v-html="convertZycd(table.zycd)"></span>,涨停数量：{{table.bk_ztnum}} 板块涨跌：<span :class="table.bk_changpercent > 0 ? 'red-text' : 'green-text'">{{table.bk_changpercent}}</span></h3>
+      <el-table :data="table.values">
+        <el-table-column prop="ts_name" label="股票名称"></el-table-column>
+        <el-table-column prop="changpercent" label="涨跌幅"></el-table-column>
+        <el-table-column prop="tradingamount" label="成交额"></el-table-column>
+      </el-table>
+    </div>
+    <div v-for="(table, index) in bkStockGnInfo" :key="index" style="flex: 1; margin: 10px; border: 1px solid #ccc;">
+      <h3 a>{{table.bk_name}}, <span v-html="convertZycd(table.zycd)"></span>,涨停数量：{{table.bk_ztnum}} 板块涨跌：<span :class="table.bk_changpercent > 0 ? 'red-text' : 'green-text'">{{table.bk_changpercent}}</span></h3>
+      <el-table :data="table.values">
+        <el-table-column prop="ts_name" label="股票名称"></el-table-column>
+        <el-table-column prop="changpercent" label="涨跌幅"></el-table-column>
+        <el-table-column prop="tradingamount" label="成交额"></el-table-column>
+      </el-table>
+    </div>
+  </div>
+</el-dialog>
   </div>
 </template>
 
@@ -336,6 +415,9 @@ import {
   updateFieldShowAPI,
   getZbStockInfoAPI,
   getCkStockInfoAPI,
+  getAllStockInfoAPI,
+  getAllStockHyInfoAPI,
+  getAllStockGnInfoAPI,
 } from "../../api/index";
 import { Splitpanes, Pane } from "splitpanes";
 
@@ -345,9 +427,19 @@ export default {
   data() {
     return {
       tablename: "stock_show",
+      is_test:"",
       paneSize: 50, //上 zb表模块高度百分比
       zbStockInfo: null, //所有zb表股票数据
       ckStockInfo: null,
+      allStockInfo: null,
+      bkStockHyInfo: null,
+      bkStockGnInfo: null,
+      bkstockTscode: "",
+      bkstockTsname: "",
+      bkstockChangpercent: 0,
+      bkstockTradingamount: 0,
+      bkstockLxztts: 0,
+      bkstockJybs: 0,
       fieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
       ],
@@ -368,6 +460,7 @@ export default {
       searchTableSelect: "zb", //选择需要搜索的表
       timer: null, //每5秒执行一次的计时器
       refreshTime: 5, //刷新时间 默认五秒
+      activeName: "industry",
       testData: [
         {
           bk_code: "308855",
@@ -398,6 +491,11 @@ export default {
   },
 
   watch: {
+
+
+
+
+
     // 监听字段搜索数据
     fieldSearchVal: {
       handler(newVal, oldVal) {
@@ -479,9 +577,42 @@ export default {
   },
 
   methods: {
+    convertZycd(zycd) {
+      if (zycd === 1) {
+        return '一般热点';
+      }
+      if (zycd === 2) {
+        return '<span style="color: red;">重要热点</span>';
+      }
+      return '';
+    },
+
+//获取是否是测试数据
+    handleChange(value) {
+
+          if (value ==true){
+            this.is_test = "test_"
+
+          }else {
+            this.is_test =""
+          }
+
+      // 在这里可以添加其他逻辑，比如根据勾选状态更新其他数据或执行其他操作
+       },
+
     // 获取所有股票信息  接口待完善 计时器每五秒刷新一次功能
+    getAllBkShowInf(ts_code,countnum){
+      getAllStockHyInfoAPI(ts_code,countnum,this.is_test).then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        this.bkStockHyInfo = res;
+            });
+      getAllStockGnInfoAPI(ts_code,countnum,this.is_test).then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        this.bkStockGnInfo = res;
+            });
+          },
     getAllStock() {
-      getZbStockInfoAPI(this.tablename).then((data) => {
+      getZbStockInfoAPI(this.tablename,this.is_test).then((data) => {
         let res = this.stockInfoFormat(JSON.parse(data));
         // 搜索功能
         if (this.searchVal != "" && this.searchTableSelect == "zb") {
@@ -506,7 +637,12 @@ export default {
         }
         this.zbStockInfo = res;
       });
-      getCkStockInfoAPI(this.tablename).then((data) => {
+      getAllStockInfoAPI(this.tablename,this.is_test).then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        this.allStockInfo = res;
+      });
+
+      getCkStockInfoAPI(this.tablename,this.is_test).then((data) => {
         let res = this.stockInfoFormat(JSON.parse(data));
         // 搜索功能
         if (this.searchVal != "" && this.searchTableSelect == "ck") {
@@ -744,12 +880,21 @@ export default {
     // 滚动条样式
     enter(id) {
       this.$(id).addClass("scrollbarShow");
+      
     },
     leave(id) {
       this.$(id).removeClass("scrollbarShow");
     },
     // 打开板块详情页面
-    openDetail() {
+
+    openDetail(ts_code,countnum,ts_name,changpercent,tradingamount,lxztts,jybs) {
+      this.bkstockTscode= ts_code
+      this.bkstockTsname= ts_name
+      this.bkstockChangpercent=changpercent
+      this.bkstockTradingamount=tradingamount
+      this.bkstockLxztts=lxztts
+      this.bkstockJybs=jybs
+      this.getAllBkShowInf(ts_code,countnum)
       this.detailVisible = true;
     },
     // 表格高度自适应
@@ -897,5 +1042,26 @@ export default {
   .detail {
     font-size: 10px;
   }
+}
+
+.red-text {
+  color: red;
+}
+.green-text {
+  color: green;
+}
+.expand-row {
+  display: flex;
+}
+.mini-table {
+  width: 16.66%;
+  height: 100px;
+  border: 1px solid #000; /* 可以修改为你需要的颜色，也可以改变边框的宽度或样式 */
+
+  /* 如果你需要在表格之间添加间距，可以增加 margin */
+  margin-right: 10px;
+
+  /* 如果你希望最后一个表格不需要右边的间距，可以使用 :last-child 选择器 */
+  :last-child { margin-right: 0; }
 }
 </style>

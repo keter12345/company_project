@@ -9,12 +9,12 @@ module.exports = {
     // 后端地址
     proxy: {
       '^/api': {
-        target: 'http://127.0.0.1:8000', //请求接口域名 
+        target: 'http://0.0.0.0:8000', //请求接口域名 
         ws: true,
         host: '192.168.31.83',
-        port: 8080,
+        port: 8060,
         client: {
-          webSocketURL: 'ws://192.168.31.83:8080/ws',
+          webSocketURL: 'ws://192.168.31.83:8060/ws',
         },
         secure: false,
         changOrigin: true, //是否允许跨越

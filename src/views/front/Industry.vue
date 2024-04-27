@@ -166,6 +166,20 @@
           <div style="margin: 0px 40px">
             <div>
               <el-button plain size="mini" @click="clear()">取消选择</el-button>
+               <el-button
+                type="primary"
+                plain
+                size="mini"
+                @click="updateStockStatus(props.$index, props.row.bk_code, -3)"
+                >ST风险</el-button
+              >
+                 <el-button
+                type="primary"
+                plain
+                size="mini"
+                @click="updateStockStatus(props.$index, props.row.bk_code, -2)"
+                >ST</el-button
+              >
               <el-button
                 type="primary"
                 plain
@@ -173,18 +187,11 @@
                 @click="updateStockStatus(props.$index, props.row.bk_code, 0)"
                 >普通</el-button
               >
-              <el-button
-                type="warning"
-                plain
-                size="mini"
-                @click="updateStockStatus(props.$index, props.row.bk_code, 1)"
-                >重要</el-button
-              >
-              <el-button
+               <el-button
                 type="danger"
                 plain
                 size="mini"
-                @click="updateStockStatus(props.$index, props.row.bk_code, 2)"
+                @click="updateStockStatus(props.$index, props.row.bk_code, 11)"
                 >龙头</el-button
               >
             </div>
@@ -214,9 +221,12 @@
                   :label="item.filedname"
                   :formatter="statusTag"
                   :filters="[
+                    { text: 'ST风险', value: -3 },
+                    { text: 'ST', value: -2 },
+                    { text: '北交所', value: -1 },
                     { text: '普通', value: 0 },
                     { text: '重要', value: 1 },
-                    { text: '龙头', value: 2 },
+                    { text: '龙头', value: 11 },
                   ]"
                   :filter-method="statusFilterTag"
                   filter-placement="bottom-end"
@@ -232,6 +242,34 @@
               </template>
               <el-table-column width="220" label="操作" fixed="right">
                 <template slot-scope="scope">
+                           <el-button
+                    type="primary"
+                    plain
+                    size="mini"
+                    @click="
+                      updateStockStatus(
+                        props.$index,
+                        props.row.bk_code,
+                        -3,
+                        scope.row
+                      )
+                    "
+                    >ST风险</el-button
+                  >
+                           <el-button
+                    type="primary"
+                    plain
+                    size="mini"
+                    @click="
+                      updateStockStatus(
+                        props.$index,
+                        props.row.bk_code,
+                        -2,
+                        scope.row
+                      )
+                    "
+                    >ST</el-button
+                  >
                   <el-button
                     type="primary"
                     plain
@@ -246,20 +284,7 @@
                     "
                     >普通</el-button
                   >
-                  <el-button
-                    type="warning"
-                    plain
-                    size="mini"
-                    @click="
-                      updateStockStatus(
-                        props.$index,
-                        props.row.bk_code,
-                        1,
-                        scope.row
-                      )
-                    "
-                    >重要</el-button
-                  >
+
                   <el-button
                     type="danger"
                     plain
@@ -268,7 +293,7 @@
                       updateStockStatus(
                         props.$index,
                         props.row.bk_code,
-                        2,
+                        11,
                         scope.row
                       )
                     "
@@ -385,7 +410,7 @@ export default {
       industryTableField: [], //行业模块显示字段
       searchInfo: [], //存储搜索结果数据
       importLevel: ["正常", "热点", "重要热点"], //行业重要程度分类
-      stockStatus: ["普通", "重要", "龙头"], //股票状态分类
+      stockStatus: ["普通", "重要", "大市值", "龙头"], //股票状态分类
       stockSelection: [], //多选框所选中的股票数据
       options: [
         //选择器选项
