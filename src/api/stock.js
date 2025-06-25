@@ -26,3 +26,11 @@ export const getAllStockGnInfo = (ts_code,countnum,is_test) => request({
     url: `stockshow_gn_ztstock/?ts_code=${ts_code}&is_test=${is_test}&countnum=${countnum}`
 })
 
+export const getStockReportInfo = (ts_code,countnum,is_test) => request({
+    method: 'GET',
+    url: `stockshow_report/?ts_code=${ts_code}&is_test=${is_test}&countnum=${countnum}`
+})
+export const getStockNoticeInfo = (ts_code,countnum,is_test) => request({
+    method: 'GET',
+    url: `stockshow_notice/?ts_code=${ts_code}&is_test=${is_test}&countnum=${countnum}`
+})

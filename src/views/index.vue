@@ -5,7 +5,11 @@
         <el-menu class="el-menu-demo" mode="horizontal">
           <el-menu-item index="1">首页</el-menu-item>
           <el-menu-item index="2">消息中心</el-menu-item>
+          <el-menu-item index="3" style="color: red; font-size: 18px;">
+  投资有风险，不提供投资建议，数据展示仅做学习和技术交流
+</el-menu-item>
         </el-menu>
+       
       </el-header>
       <el-container>
         <el-aside :width="isCollapse ? '65px' : '200px'">
@@ -42,9 +46,9 @@
                   <i class="el-icon-time"></i>
                   <span slot="title">历史数据</span>
                 </el-menu-item>
-                <el-menu-item index="/stockjs">
+                <el-menu-item index="/notice">
                   <i class="el-icon-time"></i>
-                  <span slot="title">历史JS</span>
+                  <span slot="title">公告</span>
                 </el-menu-item>
               </el-menu-item-group>
             </el-submenu>

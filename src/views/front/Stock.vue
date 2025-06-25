@@ -28,12 +28,12 @@
           "
           >重置</el-button>
        <span style="color: #909399"> 是否测试<el-checkbox v-model="isChecked" @change="handleChange"></el-checkbox></span>&nbsp;&nbsp;&nbsp;
-        <span style="color: #909399">跌停数量 ：</span><span class="green-text">{{allStockInfo[0].less_than_zero_count}}</span>&nbsp;&nbsp;&nbsp;
-        <span style="color: #909399">小于-10%数量 ：</span><span class="green-text">{{allStockInfo[0].less_than_minus_10}}</span>&nbsp;&nbsp;&nbsp;
-        <span style="color: #909399">-10%到-5%数量 ：</span><span class="green-text">{{allStockInfo[0].between_minus_10_and_minus_5}}</span>&nbsp;&nbsp;&nbsp;
-         <span style="color: #909399">下跌数量 </span><span class="green-text">{{allStockInfo[0].less_than_0}}</span>&nbsp;&nbsp;&nbsp;
-        <span style="color: #909399">上涨数量 ：</span><span class="red-text">{{allStockInfo[0].greater_than_0}}</span>&nbsp;&nbsp;&nbsp;
-        <span style="color: #909399">涨停数量 ：</span><span class="red-text">{{allStockInfo[0].greater_than_zero_count}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">跌停:</span><span class="green-text">{{allStockInfo[0].less_than_zero_count}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">小于-10%：</span><span class="green-text">{{allStockInfo[0].less_than_minus_10}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">-10%到-5% ：</span><span class="green-text">{{allStockInfo[0].between_minus_10_and_minus_5}}</span>&nbsp;&nbsp;&nbsp;
+         <span style="color: #909399">下跌: </span><span class="green-text">{{allStockInfo[0].less_than_0}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">上涨：</span><span class="red-text">{{allStockInfo[0].greater_than_0}}</span>&nbsp;&nbsp;&nbsp;
+        <span style="color: #909399">涨停：</span><span class="red-text">{{allStockInfo[0].greater_than_zero_count}}</span>&nbsp;&nbsp;&nbsp;
 
       </div>
 
@@ -318,7 +318,7 @@
                   v-if="item.prop == 'ts_code'"
                 >
                   <template slot-scope="scope">
-                    <el-link target="_blank" @click="openDetail">{{
+                    <el-link target="_blank"  @click="openDetail(scope.row.ts_code,scope.row.countnum,scope.row.ts_name,scope.row.changpercent,scope.row.tradingamount_dw,scope.row.lxztts,scope.row.cjbl  )">{{
                       scope.row.ts_code
                     }}</el-link>
                   </template>
@@ -374,6 +374,7 @@
                   :label="item.filedname"
                   v-else
                 ></el-table-column>
+
               </template>
             </el-table>
           </div>
@@ -383,27 +384,51 @@
     </div>
 <el-dialog :title="this.bkstockTscode + '    名称：'+this.bkstockTsname+'    涨跌幅:'+this.bkstockChangpercent+'   成交额：'+this.bkstockTradingamount+' 涨停天数：'+this.bkstockLxztts+'交易倍速：'+
       this.bkstockJybs" :visible.sync="detailVisible">
-
-
+      <div v-for="(table, index) in stockReportInfo" :key="index" style="flex: 1; margin: 10px; border: 1px solid #ccc;">
+      <h3><span class="red-text">{{table.report_type}}</span> ：时间：{{table.timekey}}， 净利润：<span :class="table.net_profit_amount > 0 ? 'red-text' : 'green-text'">{{table.net_profit_amount}}</span>{{table.net_profit_unit}}元 ， 同比增长：<span :class="table.growth > 0 ? 'red-text' : 'green-text'">{{table.growth}}</span></h3>
+         </div>
 
   <div style="display: flex; flex-wrap: wrap;">
+
      <div v-for="(table, index) in bkStockHyInfo" :key="index" style="flex: 1; margin: 10px; border: 1px solid #ccc;">
-      <h3 a>{{table.bk_name}}, <span v-html="convertZycd(table.zycd)"></span>,涨停数量：{{table.bk_ztnum}} 板块涨跌：<span :class="table.bk_changpercent > 0 ? 'red-text' : 'green-text'">{{table.bk_changpercent}}</span></h3>
+      <h3><span class="red-text">行业</span>        {{table.bk_name}}, <span v-html="convertZycd(table.zycd)"></span>,涨停数量：{{table.bk_ztnum}} 板块涨跌：<span :class="table.bk_changpercent > 0 ? 'red-text' : 'green-text'">{{table.bk_changpercent}}</span></h3>
       <el-table :data="table.values">
         <el-table-column prop="ts_name" label="股票名称"></el-table-column>
-        <el-table-column prop="changpercent" label="涨跌幅"></el-table-column>
         <el-table-column prop="tradingamount" label="成交额"></el-table-column>
+          <el-table-column
+    prop="lxztts"
+    label="连续涨停天数"
+  >
+    <template slot-scope="scope">
+      <div :style="{ color: scope.row.lxztts > 2 ? 'red' : '' }">
+        {{ scope.row.lxztts }}
+      </div>
+    </template>
+  </el-table-column>
       </el-table>
+
     </div>
     <div v-for="(table, index) in bkStockGnInfo" :key="index" style="flex: 1; margin: 10px; border: 1px solid #ccc;">
       <h3 a>{{table.bk_name}}, <span v-html="convertZycd(table.zycd)"></span>,涨停数量：{{table.bk_ztnum}} 板块涨跌：<span :class="table.bk_changpercent > 0 ? 'red-text' : 'green-text'">{{table.bk_changpercent}}</span></h3>
       <el-table :data="table.values">
         <el-table-column prop="ts_name" label="股票名称"></el-table-column>
-        <el-table-column prop="changpercent" label="涨跌幅"></el-table-column>
         <el-table-column prop="tradingamount" label="成交额"></el-table-column>
+          <el-table-column
+    prop="lxztts"
+    label="连续涨停天数"
+  >
+    <template slot-scope="scope">
+      <div :style="{ color: scope.row.lxztts > 2 ? 'red' : '' }">
+        {{ scope.row.lxztts }}
+      </div>
+    </template>
+  </el-table-column>
       </el-table>
     </div>
   </div>
+       <div v-for="(table, index) in noticeInfo" :key="index" style="flex: 1; margin: 10px; border: 1px solid #ccc;">
+      <h3><span class="red-text">公告</span> ：时间：{{table.timekey}} 内容：{{table.title}}{{table.content}}</h3>
+         </div>
 </el-dialog>
   </div>
 </template>
@@ -418,6 +443,8 @@ import {
   getAllStockInfoAPI,
   getAllStockHyInfoAPI,
   getAllStockGnInfoAPI,
+  getStockReportInfoAPI,
+  getStockNoticeInfoAPI,
 } from "../../api/index";
 import { Splitpanes, Pane } from "splitpanes";
 
@@ -434,6 +461,8 @@ export default {
       allStockInfo: null,
       bkStockHyInfo: null,
       bkStockGnInfo: null,
+      stockReportInfo: null,
+      noticeInfo: null,
       bkstockTscode: "",
       bkstockTsname: "",
       bkstockChangpercent: 0,
@@ -609,6 +638,15 @@ export default {
       getAllStockGnInfoAPI(ts_code,countnum,this.is_test).then((data) => {
         let res = this.stockInfoFormat(JSON.parse(data));
         this.bkStockGnInfo = res;
+            });
+
+      getStockNoticeInfoAPI(ts_code,countnum,this.is_test).then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        this.noticeInfo = res;
+            });
+      getStockReportInfoAPI(ts_code,countnum,this.is_test).then((data) => {
+        let res = this.stockInfoFormat(JSON.parse(data));
+        this.stockReportInfo = res;
             });
           },
     getAllStock() {

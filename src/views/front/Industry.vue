@@ -410,7 +410,14 @@ export default {
       industryTableField: [], //行业模块显示字段
       searchInfo: [], //存储搜索结果数据
       importLevel: ["正常", "热点", "重要热点"], //行业重要程度分类
-      stockStatus: ["普通", "重要", "大市值", "龙头"], //股票状态分类
+      stockStatus: {
+        "-3": "ST风险",
+        "-2": "ST",
+        "-1": "北交所",
+        "0": "普通",
+        "1": "重要",
+        "11": "龙头"
+    }, //股票状态分类
       stockSelection: [], //多选框所选中的股票数据
       options: [
         //选择器选项
@@ -597,12 +604,14 @@ export default {
     zycdFilterTag(value, row) {
       return value === row.zycd;
     },
-    statusTag(row, cloumn) {
-      return this.stockStatus[row.status];
+    statusTag(row) {
+        console.log("状态值:", row.status); // 调试
+        return this.stockStatus[row.status] || "未知";
     },
     statusFilterTag(value, row) {
-      return value === row.status;
+        return Number(row.status) === Number(value);
     },
+   
     StockSelectionChange(val) {
       this.stockSelection = val;
     },

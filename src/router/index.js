@@ -1,12 +1,14 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Industry from '../views/front/Industry.vue'
+import Industry from '../views/front/Industry-cp.vue'
 import Stock from '../views/front/Stock.vue'
 import Index from '../views/index'
 import Field from '../views/admin/Field'
 import Concept from '../views/front/Concept'
 import History from '../views/front/History'
 import StockJS from '../views/front/StockJS'
+import Notice from '../views/front/Notice.vue'  // 引入 Notice.vue
+
 Vue.use(VueRouter)
 
 const routes = [
@@ -14,8 +16,6 @@ const routes = [
     path: '/',
     redirect: '/industry',
   },
-
-
   {
     path: "/path",
     component: Index,
@@ -26,7 +26,8 @@ const routes = [
         meta: {
           title: '行业详情'
         }
-      }, {
+      },
+      {
         path: '/stock',
         component: Stock,
         meta: {
@@ -54,12 +55,19 @@ const routes = [
           title: '历史数据'
         }
       },
-
       {
         path: '/field',
         component: Field,
         meta: {
           title: '字段管理'
+        }
+      },
+      // 添加公告路由
+      {
+        path: '/notice',
+        component: Notice,
+        meta: {
+          title: '公告'
         }
       }
     ]
