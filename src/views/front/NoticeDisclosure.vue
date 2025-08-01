@@ -83,7 +83,7 @@
 
 <script>
 import {
-  getEarningsDisclosureAPI,
+  getEarningsDisclosuresAPI,
   getFieldInfoByTablenameAPI,
 } from "../../api/index.js";
 
