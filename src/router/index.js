@@ -10,7 +10,7 @@ import StockJS from '../views/front/StockJS'
 import Notice from '../views/front/Notice.vue'  // 引入 Notice.vue
 import RtStockZy from '../views/front/StockZy.vue'
 import StockThread from '../views/front/StockThread.vue'
-
+import NoticeDisclosure from '../views/front/NoticeDisclosure.vue'
 Vue.use(VueRouter)
 
 const routes = [
@@ -74,7 +74,7 @@ const routes = [
       },
       {
         path: '/earnings_disclosure',
-        component: () => import('../views/front/EarningsDisclosure.vue'),
+        component: NoticeDisclosure,
         meta: {
           title: '业绩披露'
         }
