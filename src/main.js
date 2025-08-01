@@ -8,9 +8,9 @@ import 'element-ui/lib/theme-chalk/index.css';
 import jquery from "jquery";
 Vue.prototype.$ = jquery;
 
+Vue.use(ElementUI);
 Vue.config.productionTip = false
 Vue.prototype.axios = axios
-Vue.use(ElementUI);
 
 new Vue({
   router,

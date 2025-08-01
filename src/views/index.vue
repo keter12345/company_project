@@ -46,13 +46,34 @@
                   <i class="el-icon-time"></i>
                   <span slot="title">历史数据</span>
                 </el-menu-item>
+
+                <el-menu-item index="/rt_stock_zy">
+                  <i class="el-icon-time"></i>
+                  <span slot="title">重要自选股</span>
+                </el-menu-item>
+              </el-menu-item-group>
+            </el-submenu>
+            <el-submenu index="2">
+              <template slot="title">
+                <i class="el-icon-s-data"></i>
+                <span>公告</span>
+              </template>
+              <el-menu-item-group>
                 <el-menu-item index="/notice">
                   <i class="el-icon-time"></i>
                   <span slot="title">公告</span>
                 </el-menu-item>
+               <el-menu-item index="/task_control">
+                  <i class="el-icon-s-home"></i>
+                  <span slot="title">股票增减持</span>
+                </el-menu-item>
+                      <el-menu-item index="/task_control">
+                  <i class="el-icon-s-home"></i>
+                  <span slot="title">业绩报告</span>
+                </el-menu-item>
               </el-menu-item-group>
-            </el-submenu>
 
+            </el-submenu>
             <el-submenu index="/field">
               <template slot="title">
                 <i class="el-icon-menu"></i>
@@ -62,6 +83,10 @@
                 <el-menu-item index="/field">
                   <i class="el-icon-s-home"></i>
                   <span slot="title">字段管理</span>
+                </el-menu-item>
+               <el-menu-item index="/task_control">
+                  <i class="el-icon-s-home"></i>
+                  <span slot="title">运行系统管理</span>
                 </el-menu-item>
               </el-menu-item-group>
             </el-submenu>

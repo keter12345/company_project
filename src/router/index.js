@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Industry from '../views/front/Industry-cp.vue'
+import Industry from '../views/front/Industry.vue'
 import Stock from '../views/front/Stock.vue'
 import Index from '../views/index'
 import Field from '../views/admin/Field'
@@ -8,6 +8,8 @@ import Concept from '../views/front/Concept'
 import History from '../views/front/History'
 import StockJS from '../views/front/StockJS'
 import Notice from '../views/front/Notice.vue'  // 引入 Notice.vue
+import RtStockZy from '../views/front/StockZy.vue'
+import StockThread from '../views/front/StockThread.vue'
 
 Vue.use(VueRouter)
 
@@ -68,6 +70,20 @@ const routes = [
         component: Notice,
         meta: {
           title: '公告'
+        }
+      },
+      {
+        path: '/rt_stock_zy',
+        component: RtStockZy,
+        meta: {
+          title: '重要自选股'
+        }
+      },
+      {
+        path: '/task_control',
+        component: StockThread,
+        meta: {
+          title: '公告更新任务控制'
         }
       }
     ]

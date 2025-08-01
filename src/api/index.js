@@ -1,3 +1,6 @@
+// 公告线程相关接口
+import { getSchedulerStatus, startScheduler, stopScheduler, runOnceNow } from './stockthread';
+import { getAllRtStockZy, addRtStockZy, updateRtStockZy, deleteRtStockZy } from './stockzy';
 import { getAllBGList, updateBGLevel, updateItemStatus } from './industry';
 import {
   getZbStockInfo,
@@ -46,3 +49,14 @@ export const updateNoticeStatusAPI = updateNoticeStatus;
 export const addNoticeAPI = addNotice;
 export const updateNoticeAPI = updateNotice;
 export const deleteNoticeAPI = deleteNotice;
+
+export const getAllRtStockZyAPI = getAllRtStockZy;
+export const addRtStockZyAPI = addRtStockZy;
+export const updateRtStockZyAPI = updateRtStockZy;
+export const deleteRtStockZyAPI = deleteRtStockZy;
+
+// 公告线程相关接口导出
+export const getSchedulerStatusAPI = getSchedulerStatus;
+export const startSchedulerAPI = startScheduler;
+export const stopSchedulerAPI = stopScheduler;
+export const runOnceNowAPI = runOnceNow;
