@@ -17,7 +17,7 @@ import { getStockJS } from './stockjs';
 import { getFieldInfoByTablename, updateFieldShow, getAllFieldInfo } from './field';
 
 // 公告部分的 API
-import { getAllNoticeInfo, updateNoticeLevel, updateNoticeStatus, addNotice, updateNotice, deleteNotice } from './notice';
+import { getAllNoticeInfo, updateNoticeLevel, updateNoticeStatus, addNotice, updateNotice, deleteNotice, getEarningsDisclosures } from './notice';
 
 export const getAllBGListAPI = getAllBGList;
 export const updateBGLevelAPI = updateBGLevel;
@@ -49,6 +49,7 @@ export const updateNoticeStatusAPI = updateNoticeStatus;
 export const addNoticeAPI = addNotice;
 export const updateNoticeAPI = updateNotice;
 export const deleteNoticeAPI = deleteNotice;
+export const getEarningsDisclosuresAPI = getEarningsDisclosures;
 
 export const getAllRtStockZyAPI = getAllRtStockZy;
 export const addRtStockZyAPI = addRtStockZy;

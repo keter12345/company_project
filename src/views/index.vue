@@ -67,7 +67,7 @@
                   <i class="el-icon-s-home"></i>
                   <span slot="title">股票增减持</span>
                 </el-menu-item>
-                      <el-menu-item index="/task_control">
+                      <el-menu-item index="/earnings_disclosure">
                   <i class="el-icon-s-home"></i>
                   <span slot="title">业绩报告</span>
                 </el-menu-item>

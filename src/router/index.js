@@ -73,6 +73,13 @@ const routes = [
         }
       },
       {
+        path: '/earnings_disclosure',
+        component: () => import('../views/front/EarningsDisclosure.vue'),
+        meta: {
+          title: '业绩披露'
+        }
+      },
+      {
         path: '/rt_stock_zy',
         component: RtStockZy,
         meta: {

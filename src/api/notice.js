@@ -45,3 +45,17 @@ export const updateNoticeStatus = (id, status) => request({
     method: 'GET',
     url: `/updateNoticeStatus/?id=${id}&status=${status}`,  // 更新公告状态
 });
+
+// 查询业绩披露
+export const getEarningsDisclosures = (searchParams) => request({
+    method: 'GET',
+    url: '/getEarningsDisclosures/',
+    params: {
+        ts_code: searchParams.ts_code,
+        ts_name: searchParams.ts_name,
+        start_date: searchParams.date_range ? searchParams.date_range[0] : '',
+        end_date: searchParams.date_range ? searchParams.date_range[1] : '',
+        report_year: searchParams.report_year,
+        report_type: searchParams.report_type,
+    }
+});
