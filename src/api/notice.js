@@ -57,5 +57,36 @@ export const getEarningsDisclosures = (searchParams) => request({
         end_date: searchParams.date_range ? searchParams.date_range[1] : '',
         report_year: searchParams.report_year,
         report_type: searchParams.report_type,
+        page: searchParams.page,
+        page_size: searchParams.page_size,
+    }
+});
+
+// 查询增减持计划
+export const getIncreaseDecreasePlans = (searchParams) => request({
+    method: 'GET',
+    url: '/getIncreaseDecreasePlans/',
+    params: {
+        ts_code: searchParams.ts_code,
+        ts_name: searchParams.ts_name,
+        start_date: searchParams.date_range ? searchParams.date_range[0] : '',
+        end_date: searchParams.date_range ? searchParams.date_range[1] : '',
+        action_type: searchParams.action_type,
+        page: searchParams.page,
+        page_size: searchParams.page_size,
+    }
+});
+
+// 查询解禁计划
+export const getUnlockPlans = (searchParams) => request({
+    method: 'GET',
+    url: '/getUnlockPlans/',
+    params: {
+        ts_code: searchParams.ts_code,
+        ts_name: searchParams.ts_name,
+        start_date: searchParams.date_range ? searchParams.date_range[0] : '',
+        end_date: searchParams.date_range ? searchParams.date_range[1] : '',
+        page: searchParams.page,
+        page_size: searchParams.page_size,
     }
 });

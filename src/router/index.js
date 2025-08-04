@@ -11,6 +11,8 @@ import Notice from '../views/front/Notice.vue'  // 引入 Notice.vue
 import RtStockZy from '../views/front/StockZy.vue'
 import StockThread from '../views/front/StockThread.vue'
 import EarningsDisclosure from '../views/front/NoticeDisclosure.vue'
+import NoticeIncreaseDecreasePlans from '../views/front/NoticeIncreaseDecreasePlans.vue'
+import NoticeUnlockPlans from '../views/front/NoticeUnlockPlans.vue'
 Vue.use(VueRouter)
 
 const routes = [
@@ -77,6 +79,20 @@ const routes = [
         component: EarningsDisclosure,
         meta: {
           title: '业绩披露'
+        }
+      },
+      {
+        path: '/increase_decrease_plan',
+        component: NoticeIncreaseDecreasePlans,
+        meta: {
+          title: '增减持计划'
+        }
+      },
+      {
+        path: '/unlock_plan',
+        component: NoticeUnlockPlans,
+        meta: {
+          title: '解禁'
         }
       },
       {

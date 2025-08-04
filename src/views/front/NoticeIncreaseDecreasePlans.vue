@@ -3,34 +3,28 @@
     <!-- 查询条件部分 -->
     <el-row :gutter="20" class="query-row">
       <el-col :span="6">
-        <el-input
-          v-model="searchParams.ts_code"
-          placeholder="股票代码"
-          size="medium"
-        />
+        <el-input v-model="searchParams.ts_code" placeholder="股票代码" size="medium" />
       </el-col>
       <el-col :span="6">
-        <el-input
-          v-model="searchParams.ts_name"
-          placeholder="股票名称"
-          size="medium"
-        />
-      </el-col>
-      <el-col :span="6">
-        <el-input
-          v-model="searchParams.title"
-          placeholder="公告标题"
-          size="medium"
-        />
+        <el-input v-model="searchParams.ts_name" placeholder="股票名称" size="medium" />
       </el-col>
       <el-col :span="6">
         <el-date-picker
           v-model="searchParams.date_range"
           type="daterange"
           size="medium"
-          placeholder="选择日期范围"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
           :picker-options="dateRangeOptions"
         />
+      </el-col>
+      <el-col :span="3">
+        <el-select v-model="searchParams.action_type" placeholder="增减持类型" size="medium">
+          <el-option label="增持" value="增持" />
+          <el-option label="减持" value="减持" />
+          <el-option label="不减持" value="不减持" />
+        </el-select>
       </el-col>
     </el-row>
 
@@ -57,13 +51,12 @@
 
     <!-- 公告表格部分 -->
     <el-table :data="noticeInfo" stripe style="width: 100%">
-      <template v-for="(item, index) in conceptTableField">
+      <template v-for="(item, index) in earningsTableField">
         <el-table-column
           sortable
           :key="index"
           :label="item.filedname"
           v-if="item.prop == 'title'"
-          :min-width="getColumnWidth(item.prop)"
         >
           <template slot-scope="scope">
             <el-link :href="scope.row.www" target="_blank">{{
@@ -77,68 +70,79 @@
           :key="index"
           :prop="item.prop"
           :label="item.filedname"
-          v-else
           :min-width="getColumnWidth(item.prop)"
+          v-else
         ></el-table-column>
       </template>
     </el-table>
+
+    <el-pagination
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :total="total"
+      layout="total, prev, pager, next, jumper"
+      @current-change="handlePageChange"
+      style="margin-top: 20px; text-align: right;"
+    />
   </div>
 </template>
 
 <script>
 import {
-  getAllNoticeInfoAPI,
+  getIncreaseDecreasePlansAPI,
   getFieldInfoByTablenameAPI,
 } from "../../api/index.js";
 
 export default {
-  name: "Notice",
+  name: "NoticeIncreaseDecreasePlans",
   data() {
     return {
       searchParams: {
         ts_code: "",
         ts_name: "",
-        title: "",
-        date_range: [
-          new Date(new Date().setDate(new Date().getDate() - 5)),
-          new Date()
-        ]
+        date_range: [],
+        action_type: ""
       },
       noticeInfo: [],
-      conceptFieldInfo: [],
-      conceptTableField: [],
+      earningsFieldInfo: [],
+      earningsTableField: [],
       dateRangeOptions: {
         disabledDate(time) {
           return time.getTime() > Date.now();
         }
-      }
+      },
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
     };
   },
   methods: {
     // 获取公告数据
     async fetchNotices() {
+      console.log("请求页码:", this.currentPage);
       // 格式化日期为 YYYY-MM-DD
-      const formattedStartDate = this.searchParams.date_range
-        ? this.searchParams.date_range[0].toISOString().split('T')[0]
-        : '';
-      const formattedEndDate = this.searchParams.date_range
-        ? this.searchParams.date_range[1].toISOString().split('T')[0]
-        : '';
-
-      // 更新searchParams
       const params = {
         ...this.searchParams,
-        start_date: formattedStartDate,
-        end_date: formattedEndDate,
+        start_date: this.searchParams.date_range?.[0]
+          ? this.searchParams.date_range[0].toISOString().split("T")[0]
+          : "",
+        end_date: this.searchParams.date_range?.[1]
+          ? this.searchParams.date_range[1].toISOString().split("T")[0]
+          : "",
+        action_type: this.searchParams.action_type,
+        page: String(this.currentPage),
+        page_size: String(this.pageSize),
       };
 
       // 请求公告数据
-      const response = await getAllNoticeInfoAPI(params);
+      const response = await getIncreaseDecreasePlansAPI(params);
+      console.log(response);
 
       if (response && response.error) {
         this.$message.error(response.error); // 错误提示
       } else {
-        this.noticeInfo = response || [];
+        this.total = response.count || 0;
+        this.noticeInfo = response.results || [];
         if (!this.noticeInfo.length) {
           this.$message.warning("没有符合条件的公告数据！");
         } else {
@@ -148,17 +152,11 @@ export default {
     },
     // 获取字段信息
     async getFieldInfo() {
-      const conceptFieldInfo = await getFieldInfoByTablenameAPI("thx_stock_near_notice");
-      this.conceptFieldInfo = conceptFieldInfo;
+      const earningsFieldInfo = await getFieldInfoByTablenameAPI("thx_stock_increase_decrease_plan");
+      this.earningsFieldInfo = earningsFieldInfo;
 
       // 格式化公告的日期字段
-      this.conceptTableField = conceptFieldInfo.filter((item) => item.is_show === 1);
-      this.noticeInfo = this.noticeInfo.map(item => {
-        if (item.execution_date) {
-          item.execution_date = item.execution_date.split('T')[0]; // 格式化为 YYYY-MM-DD
-        }
-        return item;
-      });
+      this.earningsTableField = earningsFieldInfo.filter((item) => item.is_show === 1);
     },
 
     // 重置搜索条件
@@ -166,12 +164,15 @@ export default {
       this.searchParams = {
         ts_code: "",
         ts_name: "",
-        title: "",
-        date_range: [
-          new Date(new Date().setDate(new Date().getDate() - 5)),
-          new Date()
-        ]
+        date_range: [],
+        action_type: ""
       };
+      this.currentPage = 1;
+      this.fetchNotices();
+    },
+    handlePageChange(page) {
+      console.log("翻页到第", page, "页");
+      this.currentPage = page;
       this.fetchNotices();
     },
     getColumnWidth(prop) {
@@ -180,8 +181,8 @@ export default {
         const value = row[prop] ? String(row[prop]) : "";
         return Math.max(max, value.length);
       }, 0);
-      // 每字符约14px，加40padding，最小120，最大500
-      return Math.min(Math.max(maxLength * 14 + 40, 120), 500);
+      // 每个字符按 16px 计算，最小宽度 120px，最大 300px
+      return Math.min(Math.max(maxLength * 16, 120), 300);
     },
   },
   async created() {

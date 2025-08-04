@@ -63,13 +63,17 @@
                   <i class="el-icon-time"></i>
                   <span slot="title">公告</span>
                 </el-menu-item>
-               <el-menu-item index="/task_control">
+               <el-menu-item index="/increase_decrease_plan">
                   <i class="el-icon-s-home"></i>
-                  <span slot="title">股票增减持</span>
+                  <span slot="title">股票增减持计划</span>
                 </el-menu-item>
                       <el-menu-item index="/earnings_disclosure">
                   <i class="el-icon-s-home"></i>
                   <span slot="title">业绩报告</span>
+                </el-menu-item>
+                       <el-menu-item index="/unlock_plan">
+                  <i class="el-icon-s-home"></i>
+                  <span slot="title">解禁</span>
                 </el-menu-item>
               </el-menu-item-group>
 

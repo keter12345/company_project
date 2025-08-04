@@ -74,10 +74,20 @@
           :key="index"
           :prop="item.prop"
           :label="item.filedname"
+          :min-width="getColumnWidth(item.prop)"
           v-else
         ></el-table-column>
       </template>
     </el-table>
+
+    <el-pagination
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :total="total"
+      layout="total, prev, pager, next, jumper"
+      @current-change="handlePageChange"
+      style="margin-top: 20px; text-align: right;"
+    />
   </div>
 </template>
 
@@ -105,12 +115,16 @@ export default {
         disabledDate(time) {
           return time.getTime() > Date.now();
         }
-      }
+      },
+      currentPage: 1,
+      pageSize: 10,
+      total: 0,
     };
   },
   methods: {
     // 获取公告数据
     async fetchNotices() {
+      console.log("请求页码:", this.currentPage);
       // 格式化日期为 YYYY-MM-DD
       const params = {
         ...this.searchParams,
@@ -119,16 +133,20 @@ export default {
           : "",
         end_date: this.searchParams.date_range?.[1]
           ? this.searchParams.date_range[1].toISOString().split("T")[0]
-          : ""
+          : "",
+        page: String(this.currentPage),
+        page_size: String(this.pageSize),
       };
 
       // 请求公告数据
-      const response = await getEarningsDisclosureAPI(params);
+      const response = await getEarningsDisclosuresAPI(params);
+      console.log(response);
 
       if (response && response.error) {
         this.$message.error(response.error); // 错误提示
       } else {
-        this.noticeInfo = response || [];
+        this.total = response.count || 0;
+        this.noticeInfo = response.results || [];
         if (!this.noticeInfo.length) {
           this.$message.warning("没有符合条件的公告数据！");
         } else {
@@ -143,12 +161,6 @@ export default {
 
       // 格式化公告的日期字段
       this.earningsTableField = earningsFieldInfo.filter((item) => item.is_show === 1);
-      this.noticeInfo = this.noticeInfo.map(item => {
-        if (item.execution_date) {
-          item.execution_date = item.execution_date.split('T')[0]; // 格式化为 YYYY-MM-DD
-        }
-        return item;
-      });
     },
 
     // 重置搜索条件
@@ -160,8 +172,23 @@ export default {
         report_year: "",
         report_type: ""
       };
+      this.currentPage = 1;
       this.fetchNotices();
-    }
+    },
+    handlePageChange(page) {
+      console.log("翻页到第", page, "页");
+      this.currentPage = page;
+      this.fetchNotices();
+    },
+    getColumnWidth(prop) {
+      if (!this.noticeInfo || this.noticeInfo.length === 0) return 120;
+      let maxLength = this.noticeInfo.reduce((max, row) => {
+        const value = row[prop] ? String(row[prop]) : "";
+        return Math.max(max, value.length);
+      }, 0);
+      // 每个字符按 16px 计算，最小宽度 120px，最大 300px
+      return Math.min(Math.max(maxLength * 16, 120), 300);
+    },
   },
   async created() {
     await this.getFieldInfo();
