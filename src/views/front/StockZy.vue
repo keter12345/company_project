@@ -32,6 +32,13 @@
           size="medium"
         />
       </el-col>
+      <el-col :span="6">
+        <el-select v-model="searchParams.is_new" placeholder="是否新股" size="medium">
+          <el-option label="全部" value="all"></el-option>
+          <el-option label="新股" value="new"></el-option>
+          <el-option label="旧股" value="old"></el-option>
+        </el-select>
+      </el-col>
     </el-row>
 
     <!-- 查询和新增按钮 -->
@@ -62,10 +69,26 @@
       <el-table-column prop="ts_name" label="股票名称" sortable />
       <el-table-column prop="rd_datetime" label="日期" sortable />
       <el-table-column prop="type" label="类型" sortable />
+      <el-table-column prop="is_new" label="是否新股" sortable />
+      <el-table-column label="增减持" width="120">
+        <template #default="scope">
+          <template v-if="scope.row.jj_type">
+            <el-tooltip placement="top">
+              <div slot="content">
+                <div v-for="(val, key) in planTipPairs(scope.row.jj_tip)" :key="key">
+                  <span style="color:#999">{{ key }}：</span>{{ val }}
+                </div>
+              </div>
+              <span>{{ scope.row.jj_type }}</span>
+            </el-tooltip>
+          </template>
+          <template v-else>-</template>
+        </template>
+      </el-table-column>
       <el-table-column label="操作" width="160">
         <template #default="scope">
           <el-button type="primary" size="mini" @click="openEditDialog(scope.row)">编辑</el-button>
-          <el-button type="danger" size="mini" @click="deleteRecord(scope.row.id)">删除</el-button>
+          <el-button type="danger" size="mini" @click="deleteRecord(scope.row.id, scope.row.is_new)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -79,6 +102,12 @@
 
         <el-form-item label="类型" :rules="[{ required: true, message: '请输入类型', trigger: 'blur' }]">
           <el-input v-model="editForm.type" autocomplete="off" />
+        </el-form-item>
+        <el-form-item label="是否新股">
+          <el-select v-model="editForm.is_new" placeholder="请选择">
+            <el-option label="新股" value="new" />
+            <el-option label="旧股" value="old" />
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -106,6 +135,7 @@ export default {
         ts_name: "",
         rd_datetime: [],
         type: "",
+        is_new: "all",
       },
       records: [],
       dialogVisible: false,
@@ -116,6 +146,7 @@ export default {
         ts_name: "",
         rd_datetime: "",
         type: "",
+        is_new: "old",
       },
       dateRangeOptions: {
         disabledDate(time) {
@@ -125,6 +156,11 @@ export default {
     };
   },
   methods: {
+    planTipPairs(tip) {
+      // tip is expected to be an object or null/undefined
+      if (!tip || typeof tip !== 'object') return {};
+      return tip;
+    },
     async fetchRecords() {
       try {
         const params = {
@@ -133,7 +169,9 @@ export default {
           type: this.searchParams.type,
           start_date: this.searchParams.rd_datetime.length ? this.searchParams.rd_datetime[0].toISOString().split("T")[0] : "",
           end_date: this.searchParams.rd_datetime.length ? this.searchParams.rd_datetime[1].toISOString().split("T")[0] : "",
+          is_new: this.searchParams.is_new,
         };
+        console.log("查询参数：", params);
         const response = await getAllRtStockZyAPI(params);
         this.records = response || [];
         if (!this.records.length) {
@@ -153,6 +191,7 @@ export default {
         ts_name: "",
         rd_datetime: "",
         type: "",
+        is_new: "all",
       };
       this.dialogVisible = true;
     },
@@ -164,6 +203,7 @@ export default {
         ts_name: row.ts_name,
         rd_datetime: row.rd_datetime,
         type: row.type,
+        is_new: row.is_new || "old",
       };
       this.dialogVisible = true;
     },
@@ -185,14 +225,14 @@ export default {
         this.$message.error("操作失败：" + (error.response?.data?.message || error.message));
       }
     },
-    async deleteRecord(id) {
+    async deleteRecord(id, is_new) {
       try {
         await this.$confirm("此操作将永久删除该记录，是否继续？", "提示", {
           confirmButtonText: "确定",
           cancelButtonText: "取消",
           type: "warning",
         });
-        await deleteRtStockZyAPI(id);
+        await deleteRtStockZyAPI({ id, is_new });
         this.$message.success("删除成功！");
         this.fetchRecords();
       } catch (error) {

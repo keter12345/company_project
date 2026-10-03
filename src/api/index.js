@@ -1,3 +1,4 @@
+
 // 公告线程相关接口
 import { getSchedulerStatus, startScheduler, stopScheduler, runOnceNow } from './stockthread';
 import { getAllRtStockZy, addRtStockZy, updateRtStockZy, deleteRtStockZy } from './stockzy';
@@ -13,9 +14,11 @@ import {
 } from './stock';
 import { getAllBKGNInfo, updateGNLevel, updateGNItemStatus } from './concept';
 import { getHistory } from './history';
-import { getStockJS } from './stockjs';
+import { getStockJS, getAllBkgnList, getAllBkhyList } from './stockjs';
+
 import { getFieldInfoByTablename, updateFieldShow, getAllFieldInfo } from './field';
 
+import { getStockShownewZb, getStockShownewCk } from './stockshow';
 // 公告部分的 API
 import { getAllNoticeInfo, updateNoticeLevel, updateNoticeStatus, addNotice, updateNotice, deleteNotice, getEarningsDisclosures, getIncreaseDecreasePlans, getUnlockPlans } from './notice';
 
@@ -63,3 +66,9 @@ export const getSchedulerStatusAPI = getSchedulerStatus;
 export const startSchedulerAPI = startScheduler;
 export const stopSchedulerAPI = stopScheduler;
 export const runOnceNowAPI = runOnceNow;
+
+export const getAllBkgnListAPI = getAllBkgnList;
+export const getAllBkhyListAPI = getAllBkhyList;
+
+export const getStockShownewZbAPI = getStockShownewZb;
+export const getStockShownewCkAPI = getStockShownewCk;

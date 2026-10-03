@@ -47,24 +47,60 @@
             :key="index"
             class="card_item"
           >
-            <el-input
-              placeholder="请输入内容"
-              v-model="item.stockSearchVal"
-              size="medium"
-            >
+            <div style="display: flex; gap: 8px; align-items: center">
+              <!-- 字段选择 -->
               <el-select
                 v-model="item.stockSearchSelect"
-                slot="prepend"
-                placeholder="请选择"
+                placeholder="字段"
+                size="medium"
+                style="width: 140px"
               >
                 <el-option
-                  v-for="item in selectFieldTable"
-                  :key="item.id"
-                  :label="item.filedname"
-                  :value="item.prop"
+                  v-for="f in selectFieldTable"
+                  :key="f.id"
+                  :label="f.filedname"
+                  :value="f.prop"
                 ></el-option>
               </el-select>
-            </el-input>
+
+              <!-- 值：默认模糊查询；重要程度(zycd)用选择框 -->
+              <el-select
+                v-if="item.stockSearchSelect === 'zycd'"
+                v-model="item.stockSearchVal"
+                placeholder="重要程度"
+                clearable
+                size="medium"
+                style="flex: 1"
+              >
+                <el-option label="不监控" value="-1"></el-option>
+                <el-option label="正常" value="0"></el-option>
+                <el-option label="热点" value="1"></el-option>
+                <el-option label="重要热点" value="2"></el-option>
+              </el-select>
+              <el-select
+                v-else-if="item.stockSearchSelect === 'status'"
+                v-model="item.stockSearchVal"
+                placeholder="股票状态"
+                clearable
+                size="medium"
+                style="flex: 1"
+              >
+                <el-option label="ST风险" value="-3"></el-option>
+                <el-option label="ST" value="-2"></el-option>
+                <el-option label="北交所" value="-1"></el-option>
+                <el-option label="普通" value="0"></el-option>
+                <el-option label="重要" value="1"></el-option>
+                <el-option label="龙头" value="11"></el-option>
+              </el-select>
+              <el-input
+                v-else
+                placeholder="请输入内容（模糊匹配）"
+                v-model="item.stockSearchVal"
+                size="medium"
+                style="flex: 1"
+                clearable
+              />
+            </div>
           </div>
         </el-card>
       </transition>
@@ -159,7 +195,16 @@
 
     <!-- 表格部分 -->
 
-    <el-table :data="IndustryInfo" stripe style="width: 100%">
+    <el-table
+      ref="industryTable"
+      :data="IndustryInfo"
+      :row-key="getIndustryRowKey"
+      :expand-row-keys="expandedIndustryKeys"
+      v-loading="tableLoading"
+      stripe
+      style="width: 100%"
+      @expand-change="handleIndustryExpandChange"
+    >
       <!-- 子模块 -->
       <el-table-column type="expand">
         <template slot-scope="props">
@@ -170,28 +215,28 @@
                 type="primary"
                 plain
                 size="mini"
-                @click="updateStockStatus(props.$index, props.row.bk_code, -3)"
+                @click="updateStockStatus(props.row.bk_code, -3)"
                 >ST风险</el-button
               >
                  <el-button
                 type="primary"
                 plain
                 size="mini"
-                @click="updateStockStatus(props.$index, props.row.bk_code, -2)"
+                @click="updateStockStatus(props.row.bk_code, -2)"
                 >ST</el-button
               >
               <el-button
                 type="primary"
                 plain
                 size="mini"
-                @click="updateStockStatus(props.$index, props.row.bk_code, 0)"
+                @click="updateStockStatus(props.row.bk_code, 0)"
                 >普通</el-button
               >
                <el-button
                 type="danger"
                 plain
                 size="mini"
-                @click="updateStockStatus(props.$index, props.row.bk_code, 11)"
+                @click="updateStockStatus(props.row.bk_code, 11)"
                 >龙头</el-button
               >
             </div>
@@ -248,7 +293,6 @@
                     size="mini"
                     @click="
                       updateStockStatus(
-                        props.$index,
                         props.row.bk_code,
                         -3,
                         scope.row
@@ -262,7 +306,6 @@
                     size="mini"
                     @click="
                       updateStockStatus(
-                        props.$index,
                         props.row.bk_code,
                         -2,
                         scope.row
@@ -276,7 +319,6 @@
                     size="mini"
                     @click="
                       updateStockStatus(
-                        props.$index,
                         props.row.bk_code,
                         0,
                         scope.row
@@ -291,7 +333,6 @@
                     size="mini"
                     @click="
                       updateStockStatus(
-                        props.$index,
                         props.row.bk_code,
                         11,
                         scope.row
@@ -335,6 +376,7 @@
           :label="item.filedname"
           :formatter="zycdTag"
           :filters="[
+            { text: '不监控', value: '-1' },
             { text: '正常', value: '0' },
             { text: '热点', value: '1' },
             { text: '重要热点', value: '2' },
@@ -353,6 +395,12 @@
       </template>
       <el-table-column align="right" label="操作">
         <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="info"
+            @click="updateIndustryLevel(scope.row.bk_code, '-1')"
+            >不监控</el-button
+          >
           <el-button
             size="mini"
             type="primary"
@@ -390,7 +438,7 @@ export default {
   components: {},
   data() {
     return {
-      IndustryInfo: null, //储存所有数据
+      IndustryInfo: [], //储存所有数据
       drawer: false, //设置抽屉是否显示
       fieldInfo: [
         //字段表数据，用于多选 prop：字段名 filedname：字段备注，isshow：默认显示
@@ -409,7 +457,7 @@ export default {
       sotckTableField: [], //股票子模块显示的字段
       industryTableField: [], //行业模块显示字段
       searchInfo: [], //存储搜索结果数据
-      importLevel: ["正常", "热点", "重要热点"], //行业重要程度分类
+      importLevel: ["正常", "热点", "重要热点"], //行业重要程度分类（-1=不监控；前端 zycdTag 已兼容）
       stockStatus: {
         "-3": "ST风险",
         "-2": "ST",
@@ -417,7 +465,7 @@ export default {
         "0": "普通",
         "1": "重要",
         "11": "龙头"
-    }, //股票状态分类
+      }, //股票状态分类
       stockSelection: [], //多选框所选中的股票数据
       options: [
         //选择器选项
@@ -436,6 +484,8 @@ export default {
       stockSearchShow: false, //数据搜索框是否展示
       selectFieldTable: [], //需要搜索字段数据
       activeName: "industry",
+      tableLoading: false,
+      expandedIndustryKeys: [],
     };
   },
   computed: {},
@@ -487,60 +537,50 @@ export default {
       });
       return info;
     },
+    getFieldValue(row, prop) {
+      if (!row || !prop) return "";
+      return row[prop];
+    },
     // 方法：获取所有行业信息
     async getAllBG() {
-      let res = this.stockInfoFormat(JSON.parse(await getAllBGListAPI()));
-      if (this.searchVal.length > 0) {
-        if (this.searchSelect == "行业") {
-          // console.log(this.searchVal);
-          // 搜索选项为'行业'进行搜索
-          this.searchVal.forEach((val) => {
-            res = res.filter((data) => {
-              if (typeof eval(`data.${val.stockSearchSelect}`) == "number") {
-                data = eval(`data.${val.stockSearchSelect}.toString()`);
-                return (
-                  data.substr(0, val.stockSearchVal.length) ==
-                  val.stockSearchVal
-                );
-              } else {
-                return (
-                  !val ||
-                  eval(
-                    `data.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
-                  )
-                );
-              }
-            });
-            // console.log(res);
-          });
-        } else if (this.searchSelect == "股票") {
-          // 搜索选项为'股票'进行搜索
-          this.searchVal.forEach((val) => {
-            res.forEach((item) => {
-              item.values = item.values.filter((res) => {
-                if (typeof eval(`res.${val.stockSearchSelect}`) == "number") {
-                  res = eval(`res.${val.stockSearchSelect}.toString()`);
-                  return (
-                    res.substr(0, val.stockSearchVal.length) ==
-                    val.stockSearchVal
-                  );
-                } else {
-                  return (
-                    !val ||
-                    eval(
-                      `res.${val.stockSearchSelect}.toString().includes(val.stockSearchVal)`
-                    )
-                  );
-                }
-              });
+      this.tableLoading = true;
+      try {
+        let res = this.stockInfoFormat(JSON.parse(await getAllBGListAPI()));
+        if (this.searchVal.length > 0) {
+          if (this.searchSelect == "行业") {
+            this.searchVal.forEach((val) => {
               res = res.filter((data) => {
-                return data.values.length > 0;
+                const v = val.stockSearchVal?.toString() ?? "";
+                const fv = this.getFieldValue(data, val.stockSearchSelect);
+                if (val.stockSearchSelect === "zycd") {
+                  return Number(fv) === Number(v);
+                }
+                return fv != null && fv.toString().includes(v);
               });
             });
-          });
+          } else if (this.searchSelect == "股票") {
+            this.searchVal.forEach((val) => {
+              res.forEach((item) => {
+                item.values = item.values.filter((stock) => {
+                  const v = val.stockSearchVal?.toString() ?? "";
+                  const fv = this.getFieldValue(stock, val.stockSearchSelect);
+                  if (val.stockSearchSelect === "status") {
+                    return Number(fv) === Number(v);
+                  }
+                  return fv != null && fv.toString().includes(v);
+                });
+              });
+              res = res.filter((data) => data.values.length > 0);
+            });
+          }
         }
+        this.IndustryInfo = res;
+        this.expandedIndustryKeys = this.expandedIndustryKeys.filter((key) =>
+          res.some((row) => row.bk_code === key)
+        );
+      } finally {
+        this.tableLoading = false;
       }
-      this.IndustryInfo = res;
     },
 
     // 方法：修改行业信息重要程度，bk_code, val：修改值
@@ -548,7 +588,7 @@ export default {
       let res = "";
       try {
         res = await updateBGLevelAPI(bk_code, val);
-        this.getAllBG();
+        this.patchIndustryLevel(bk_code, val);
         this.$message({
           message: "重要程度更新成功！",
           type: "success",
@@ -562,7 +602,7 @@ export default {
       }
     },
     // 方法：修改股票状态
-    async updateStockStatus(index, bk_code, status, row) {
+    async updateStockStatus(bk_code, status, row) {
       let data = [];
 
       if (row == "" || row == null) {
@@ -581,35 +621,63 @@ export default {
         // 单独修改
         data.push(row.ts_code);
       }
-      let res = await updateItemStatusAPI(bk_code, data, status);
-      if (res == 1) {
-        this.getAllBG();
-        // 更新成功提示框
-        this.$message({
-          message: "状态更新成功！",
-          type: "success",
-        });
-      } else {
+      try {
+        let res = await updateItemStatusAPI(bk_code, data, status);
+        if (res == 1) {
+          this.patchStockStatus(bk_code, data, status);
+          // 更新成功提示框
+          this.$message({
+            message: "状态更新成功！",
+            type: "success",
+          });
+        } else {
+          this.$message({
+            message: "状态更新失败",
+            type: "warning",
+          });
+        }
+      } catch (error) {
         this.$message({
           message: "状态更新失败",
           type: "warning",
         });
       }
     },
-    // 根据重要程度展示对应文字
-    zycdTag(row, cloumn) {
-      return this.importLevel[row.zycd];
+    patchIndustryLevel(bk_code, val) {
+      const industry = (this.IndustryInfo || []).find((item) => item.bk_code === bk_code);
+      if (industry) {
+        this.$set(industry, "zycd", val);
+      }
     },
-    // 根据重要程度实现筛选
+    patchStockStatus(bk_code, tsCodes, status) {
+      const industry = (this.IndustryInfo || []).find((item) => item.bk_code === bk_code);
+      if (!industry || !Array.isArray(industry.values)) return;
+      industry.values.forEach((stock) => {
+        if (tsCodes.includes(stock.ts_code)) {
+          this.$set(stock, "status", status);
+        }
+      });
+      this.stockSelection = [];
+      this.clear();
+    },
+    // 根据重要程度展示对应文字
+    zycdTag(row) {
+      const z = Number(row.zycd);
+      if (z === -1) return "不监控";
+      if (z === 0) return "正常";
+      if (z === 1) return "热点";
+      if (z === 2) return "重要热点";
+      return row.zycd ?? "";
+    },
+    // 根据重要程度实现筛选（数字比较，避免 '0' vs 0 不相等）
     zycdFilterTag(value, row) {
-      return value === row.zycd;
+      return Number(value) === Number(row.zycd);
     },
     statusTag(row) {
-        console.log("状态值:", row.status); // 调试
-        return this.stockStatus[row.status] || "未知";
+      return this.stockStatus[row.status] || "未知";
     },
     statusFilterTag(value, row) {
-        return Number(row.status) === Number(value);
+      return Number(row.status) === Number(value);
     },
    
     StockSelectionChange(val) {
@@ -617,7 +685,13 @@ export default {
     },
     // 取消多选框选择
     clear() {
-      this.$refs.stockTable.clearSelection();
+      const tables = Array.isArray(this.$refs.stockTable)
+        ? this.$refs.stockTable
+        : [this.$refs.stockTable];
+      tables.forEach((table) => {
+        if (table) table.clearSelection();
+      });
+      this.stockSelection = [];
     },
     // 添加搜索条件
     addStockSearch() {
@@ -650,7 +724,6 @@ export default {
       if (this.searchVal.length > 0) {
         // 进行数据查询
         this.getAllBG();
-        this.stockSearchShow = false;
       } else {
         this.$message({
           message: "请输入完整的搜索条件！",
@@ -725,6 +798,12 @@ export default {
     },
     getRowKey(row) {
       return row.id;
+    },
+    getIndustryRowKey(row) {
+      return row.bk_code;
+    },
+    handleIndustryExpandChange(row, expandedRows) {
+      this.expandedIndustryKeys = expandedRows.map((item) => item.bk_code);
     },
 
     // 抽屉功能：字段部分增删改查

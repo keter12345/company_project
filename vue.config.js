@@ -6,6 +6,7 @@ module.exports = {
   // publicPath: './',
   // 配置跨域
   devServer: {
+    historyApiFallback: true,
     // 后端地址
     proxy: {
       '^/api': {

@@ -62,6 +62,10 @@ export const getEarningsDisclosures = (searchParams) => request({
     }
 });
 
+// 查询近期业绩报告（默认今天前后各 7 天）
+export const getRecentEarningsReports = (params) =>
+  request.get('/getRecentEarningsReports/', { params });
+
 // 查询增减持计划
 export const getIncreaseDecreasePlans = (searchParams) => request({
     method: 'GET',
