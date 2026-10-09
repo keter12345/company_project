@@ -4,7 +4,7 @@
       <div slot="header" class="card-header">
         <div>
           <b>股票监控与龙头管理</b>
-          <span class="header-note">全局状态只分普通、重要；行业和概念中的身份使用普通、重要、龙头。</span>
+          <span class="header-note">全局状态只分普通、重要；行业和概念可设置普通、重要、龙头，并可额外标记市值龙头。</span>
         </div>
         <el-button size="mini" icon="el-icon-refresh" :loading="loading" @click="loadRows">刷新全部</el-button>
       </div>
@@ -58,6 +58,7 @@
                         <el-button size="mini" :type="industry.zycd === 0 ? 'primary' : 'default'" @click.stop="saveRelation({ row: industry, value: 0, plateType: 'industry' })">普通</el-button>
                         <el-button size="mini" :type="industry.zycd === 1 ? 'warning' : 'default'" @click.stop="saveRelation({ row: industry, value: 1, plateType: 'industry' })">重要</el-button>
                         <el-button size="mini" :type="industry.zycd === 2 ? 'danger' : 'default'" @click.stop="saveRelation({ row: industry, value: 2, plateType: 'industry' })">龙头</el-button>
+                        <el-button size="mini" :type="industry.is_market_cap_leader ? 'success' : 'default'" @click.stop="toggleMarketCapLeader(industry, 'industry')">市值龙头</el-button>
                       </span>
                     </div>
                   </div>
@@ -72,6 +73,7 @@
                         <el-button size="mini" :type="concept.zycd === 0 ? 'primary' : 'default'" @click.stop="saveRelation({ row: concept, value: 0, plateType: 'concept' })">普通</el-button>
                         <el-button size="mini" :type="concept.zycd === 1 ? 'warning' : 'default'" @click.stop="saveRelation({ row: concept, value: 1, plateType: 'concept' })">重要</el-button>
                         <el-button size="mini" :type="concept.zycd === 2 ? 'danger' : 'default'" @click.stop="saveRelation({ row: concept, value: 2, plateType: 'concept' })">龙头</el-button>
+                        <el-button size="mini" :type="concept.is_market_cap_leader ? 'success' : 'default'" @click.stop="toggleMarketCapLeader(concept, 'concept')">市值龙头</el-button>
                       </span>
                     </div>
                   </div>
@@ -193,6 +195,19 @@ export default {
       try {
         await updateGpfxStockMonitorRelation({ ts_code: this.detail.stock.ts_code, bk_code: row.bk_code, plate_type: plateType, zycd: value })
         row.zycd = value; row.zycd_text = ({ 0: '普通', 1: '重要', 2: '龙头' })[value]; this.$message.success('板块身份已保存')
+      } catch (error) { this.$message.error((error && error.message) || '保存失败') }
+    },
+    async toggleMarketCapLeader (row, plateType) {
+      const value = row.is_market_cap_leader ? 0 : 1
+      try {
+        await updateGpfxStockMonitorRelation({
+          ts_code: this.detail.stock.ts_code,
+          bk_code: row.bk_code,
+          plate_type: plateType,
+          is_market_cap_leader: value
+        })
+        row.is_market_cap_leader = value
+        this.$message.success(value ? '已标记为市值龙头' : '已取消市值龙头')
       } catch (error) { this.$message.error((error && error.message) || '保存失败') }
     }
   },

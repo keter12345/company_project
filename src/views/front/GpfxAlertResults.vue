@@ -1,5 +1,7 @@
 <template>
   <div>
+    <div class="market-alert-layout">
+      <div class="alert-main-column">
     <el-card class="gpfx-card overview-card">
       <div slot="header" class="header">
         <div>
@@ -29,7 +31,7 @@
       <el-empty v-else description="尚未生成市场一分钟数据" :image-size="42" />
     </el-card>
 
-    <el-card class="gpfx-card">
+    <el-card class="gpfx-card alert-list-card">
       <div slot="header" class="header">
         <div>
           <span class="title">股票实时提示（新版）</span>
@@ -126,6 +128,43 @@
         </el-table-column>
       </el-table>
     </el-card>
+      </div>
+
+    <el-card class="gpfx-card limit-up-panel">
+      <div slot="header" class="limit-up-header">
+        <div>
+          <span class="title-small">当前涨停股票</span>
+          <el-tag size="mini" type="warning" style="margin-left: 6px;">{{ limitUpStocks.length }} 家</el-tag>
+        </div>
+        <el-tag size="mini" type="info">countnum：{{ limitUpCountnum === null ? '-' : limitUpCountnum }}</el-tag>
+      </div>
+      <div class="limit-up-tip">与当前查询的行情批次一致；仅展示有效 A 股。</div>
+      <div v-if="limitUpStocks.length" class="limit-up-stock-list">
+        <div v-for="stock in limitUpStocks" :key="stock.ts_code" class="limit-up-stock-item">
+          <div class="limit-up-stock-main">
+            <span class="limit-up-time">{{ stock.limit_up_time || '-' }}</span>
+            <b>{{ stock.ts_code }}</b>
+            <b class="limit-up-name">{{ stock.ts_name }}</b>
+            <span class="limit-up-label-tag">{{ stock.limit_display_label || '涨停' }}</span>
+            <span class="limit-up-change">{{ signed(stock.changpercent) }}%</span>
+          </div>
+          <div v-if="stock.industry_names && stock.industry_names.length" class="limit-up-plates">
+            <span class="limit-up-label">行业</span>
+            <span v-for="name in stock.industry_names" :key="`${stock.ts_code}-hy-${name}`" class="limit-up-plate">{{ name }}</span>
+          </div>
+          <div v-if="stock.concept_tags && stock.concept_tags.length" class="limit-up-plates">
+            <span class="limit-up-label">概念</span>
+            <span
+              v-for="tag in stock.concept_tags"
+              :key="`${stock.ts_code}-gn-${tag.name}`"
+              :class="['limit-up-plate', { 'limit-up-plate-hot': tag.is_hot }]"
+            >{{ tag.name }}</span>
+          </div>
+        </div>
+      </div>
+      <el-empty v-else description="该批次没有涨停股票" :image-size="44" />
+    </el-card>
+    </div>
 
     <div
       v-if="hoverCard.visible"
@@ -317,6 +356,8 @@ export default {
         { value: 'CLOSING_NEWS', label: '尾盘突发' }, { value: 'CLOSING', label: '14:50 尾盘' },
       ],
       rows: [],
+      limitUpStocks: [],
+      limitUpCountnum: null,
       jobs: [],
       rules: [],
       // 列配置与排序均在浏览器内完成。当前接口最多读取 300 条，不增加数据库排序负担。
@@ -562,6 +603,8 @@ export default {
         this.availableCountnums = data.available_countnums || []
         this.marketOverview = data.market_overview || { summary: {}, markets: [] }
         this.rows = data.rows || []
+        this.limitUpStocks = data.limit_up_stocks || []
+        this.limitUpCountnum = data.limit_up_countnum === undefined ? null : data.limit_up_countnum
         this.jobs = data.jobs || []
         this.rules = data.rules || []
       }).catch(() => {
@@ -794,9 +837,31 @@ export default {
 .title { font-size: 16px; font-weight: 600; }
 .title-small { font-size: 14px; font-weight: 600; }
 .overview-card { margin-bottom: 14px; }
-.market-summary { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 12px; color: #4b5563; font-size: 13px; }
-.market-tile { min-height: 86px; margin-bottom: 10px; padding: 10px 12px; border: 1px solid #e6eaf0; border-radius: 4px; color: #5b6472; font-size: 12px; line-height: 1.8; }
-.market-title { color: #303133; font-weight: 600; font-size: 14px; }
+.overview-card >>> .el-card__header { padding: 9px 14px; }
+.overview-card >>> .el-card__body { padding: 9px 14px 4px; }
+.market-alert-layout { display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 14px; align-items: start; }
+.alert-main-column { min-width: 0; }
+.alert-list-card { min-width: 0; }
+.limit-up-panel { position: sticky; top: 10px; }
+.limit-up-panel >>> .el-card__header { padding: 12px 14px; }
+.limit-up-panel >>> .el-card__body { max-height: calc(100vh - 155px); overflow-y: auto; padding: 10px 14px 14px; }
+.limit-up-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.limit-up-tip { margin: 0 0 8px; color: #909399; font-size: 12px; }
+.limit-up-stock-list { display: grid; gap: 8px; }
+.limit-up-stock-item { padding: 8px 0; border-bottom: 1px solid #ebeef5; font-size: 12px; line-height: 1.65; }
+.limit-up-stock-item:last-child { border-bottom: 0; }
+.limit-up-stock-main { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.limit-up-time { min-width: 49px; color: #909399; font-variant-numeric: tabular-nums; }
+.limit-up-name { max-width: 94px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.limit-up-label-tag { padding: 0 4px; border-radius: 3px; background: #fff1d8; color: #bd7f00; font-size: 11px; font-weight: 600; }
+.limit-up-change { margin-left: auto; color: #d99b19; font-weight: 600; }
+.limit-up-plates { display: flex; flex-wrap: wrap; gap: 3px 5px; padding-left: 55px; color: #606266; }
+.limit-up-label { width: 26px; margin-left: -31px; color: #909399; }
+.limit-up-plate { display: inline-block; padding: 0 4px; border-radius: 3px; background: #f4f4f5; color: #606266; }
+.limit-up-plate-hot { color: #e53935; background: #fff1f0; font-weight: 600; }
+.market-summary { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 7px; color: #4b5563; font-size: 12px; }
+.market-tile { min-height: 64px; margin-bottom: 5px; padding: 6px 10px; border: 1px solid #e6eaf0; border-radius: 4px; color: #5b6472; font-size: 12px; line-height: 1.55; }
+.market-title { color: #303133; font-weight: 600; font-size: 13px; }
 .up-text { color: #e53935; }
 .down-text { color: #1e88e5; }
 .filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; }
@@ -870,6 +935,7 @@ export default {
 .limit-up-line { color: #e53935; }
 .limit-up-chip { display: inline-block; margin: 2px 4px 0 0; padding: 0 4px; border-radius: 3px; background: #fff1f0; }
 .event-summary { max-height: 36px; overflow: hidden; color: #909399; }
+@media (max-width: 1200px) { .market-alert-layout { grid-template-columns: 1fr; } .limit-up-panel { position: static; } .limit-up-panel >>> .el-card__body { max-height: 560px; } }
 @media (max-width: 900px) { .stock-hover-card { width: calc(100vw - 16px); } .hover-plate-grid, .hover-news-grid { grid-template-columns: 1fr; } }
 .jobs-card { margin-top: 14px; }
 .detail-line { line-height: 1.7; word-break: break-all; }
